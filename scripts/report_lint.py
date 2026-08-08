@@ -72,6 +72,13 @@ def main() -> int:
                 errors.append(message)
             else:
                 warnings.append(message)
+    if args.require_reportable:
+        validation = record.get("validation") if isinstance(record.get("validation"), dict) else {}
+        review_id = str(validation.get("review_evidence_id", "")).strip()
+        packet_id = str(validation.get("blind_packet_evidence_id", "")).strip()
+        for evidence_id, label in ((review_id, "independent X1 review"), (packet_id, "blind validation packet")):
+            if evidence_id and evidence_id not in report_evidence:
+                errors.append(f"report cites no {label} evidence id: {evidence_id}")
     for name, pattern, _replacement in PATTERNS:
         if any("<REDACTED" not in match.group(0) for match in pattern.finditer(report)):
             errors.append(f"possible unredacted secret: {name}")

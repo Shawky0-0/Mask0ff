@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-independent-validation",
+  "candidate_id": "reportable-fixture",
+  "discovery_owner": "mask0ff_researcher",
+  "validator_owner": "mask0ff_verifier",
+  "independence": "separate-agent",
+  "blind_packet_evidence_id": "E-005",
+  "blind_packet_sha256": "f440ee8a2ad52b32c4051d0c9ca85b6f14f6e3e4a452ad9509836a2a31cc4a19",
+  "scope_rechecked": true,
+  "clean_environment": true,
+  "independent_reproduction_evidence": ["E-003"],
+  "control_evidence": ["E-004"],
+  "alternative_explanations": [
+    {
+      "explanation": "The result came from contaminated discovery state.",
+      "status": "ruled-out",
+      "evidence": ["E-004"]
+    }
+  ],
+  "chain_review": [
+    {
+      "link": "The independent evaluator reaches the owned fixture.",
+      "status": "pass",
+      "evidence": ["E-003"]
+    },
+    {
+      "link": "Unsupported assertions remain rejected under a negative control.",
+      "status": "pass",
+      "evidence": ["E-004"]
+    }
+  ],
+  "environment_limitations": [],
+  "duplicate_assessment": "Deterministic local fixture; public duplicate logic is exercised by D1 separately.",
+  "verdict": "confirmed",
+  "reason": "A separate validator reproduced the fixture from fresh state and ruled out contaminated state."
+}

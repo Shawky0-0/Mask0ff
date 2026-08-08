@@ -36,7 +36,7 @@
     {
       "id": "core-proof-is-verified-not-reportable",
       "work_mode": "active-authorized",
-      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1"],
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1"],
       "not_applicable": ["S1", "V1", "F1"],
       "expected_state": "verified",
       "expected_errors": 0
@@ -44,7 +44,7 @@
     {
       "id": "all-report-gates-pass",
       "work_mode": "active-authorized",
-      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1", "S1", "V1", "F1", "D1", "Q1"],
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "S1", "V1", "F1", "D1", "Q1"],
       "not_applicable": [],
       "expected_state": "reportable",
       "expected_errors": 0
@@ -52,9 +52,17 @@
     {
       "id": "blackbox-applicability-reasons-are-accepted",
       "work_mode": "active-authorized",
-      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1", "D1", "Q1"],
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "D1", "Q1"],
       "not_applicable": ["S1", "V1", "F1"],
       "expected_state": "reportable",
+      "expected_errors": 0
+    },
+    {
+      "id": "discovery-repeats-without-x1-remain-substantiated",
+      "work_mode": "local-lab",
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1"],
+      "not_applicable": [],
+      "expected_state": "substantiated",
       "expected_errors": 0
     },
     {

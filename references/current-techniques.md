@@ -15,3 +15,5 @@ Recent research lanes include parser differentials, successful-error injection/S
 Also route through OWASP Top 10:2025, the current WSTG, OWASP API Security Top 10 2023, the OWASP Agentic Applications risk model, and HackerOne's current H1P methodology for objective-led penetration-test coverage. Living sources may change after the recorded review time, so check the current primary source during a real engagement and preserve the access date.
 
 Never call a technique match a vulnerability. Convert one observed signal into one falsifiable hypothesis and run the evidence pipeline.
+
+When the user names a vulnerability class or an unfamiliar technology, do not query only the current catalog. First build a prior-art method card and technology-onboarding record with [research-operations.md](research-operations.md), then use the class and zero-day routes in [vulnerability-playbooks.md](vulnerability-playbooks.md). Scanner/rule output remains a lead and cannot pass independent X1 validation.

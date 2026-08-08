@@ -50,6 +50,7 @@
     "P1": {"status": "pending", "evidence": [], "reason": ""},
     "C1": {"status": "pending", "evidence": [], "reason": ""},
     "R1": {"status": "pending", "evidence": [], "reason": ""},
+    "X1": {"status": "pending", "evidence": [], "reason": ""},
     "I1": {"status": "pending", "evidence": [], "reason": ""},
     "S1": {"status": "pending", "evidence": [], "reason": ""},
     "V1": {"status": "pending", "evidence": [], "reason": ""},
@@ -59,6 +60,16 @@
   },
   "evidence": [],
   "runs": [],
+  "validation": {
+    "status": "pending",
+    "independence": "",
+    "discovery_owner": "",
+    "validator_owner": "",
+    "blind_packet_evidence_id": "",
+    "review_evidence_id": "",
+    "reproduction_evidence": [],
+    "verdict": "pending"
+  },
   "claims": [],
   "severity": {
     "rating": "",

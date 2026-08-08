@@ -22,6 +22,7 @@ from program_profile import checked_hackerone_url, import_bugcrowd, import_hacke
 from query_techniques import score as technique_score, tokens as technique_tokens  # noqa: E402
 from redact_artifact import PATTERNS  # noqa: E402
 from session_profile import validate_session  # noqa: E402
+from tool_inventory import build_strategy  # noqa: E402
 from verify_finding import calculate_effective_state, calculate_state, validate  # noqa: E402
 
 
@@ -65,6 +66,25 @@ def scenario_record(template: dict, scenario: dict) -> dict:
             {"id": "run-1", "evidence": ["E-001"]},
             {"id": "run-2", "evidence": ["E-002"]},
         ]
+    if "X1" in scenario.get("pass", []):
+        record["evidence"].extend(
+            [
+                {"id": "E-003", "kind": "independent-validation", "path": "none-3", "sha256": "", "observation": "synthetic independent review"},
+                {"id": "E-004", "kind": "independent-reproduction", "path": "none-4", "sha256": "", "observation": "synthetic independent reproduction"},
+                {"id": "E-005", "kind": "validation-packet", "path": "none-5", "sha256": "", "observation": "synthetic blind packet"},
+            ]
+        )
+        record["gates"]["X1"] = {"status": "pass", "evidence": ["E-003", "E-004", "E-005"], "reason": ""}
+        record["validation"] = {
+            "status": "pass",
+            "independence": "separate-agent",
+            "discovery_owner": "discovery-eval",
+            "validator_owner": "validator-eval",
+            "blind_packet_evidence_id": "E-005",
+            "review_evidence_id": "E-003",
+            "reproduction_evidence": ["E-004"],
+            "verdict": "confirmed",
+        }
     for gate in scenario.get("not_applicable", []):
         record["gates"][gate] = {"status": "not_applicable", "evidence": [], "reason": "eval reason"}
     for gate in scenario.get("clear_evidence_for", []):
@@ -310,11 +330,45 @@ def main() -> int:
 
     if not any(item["id"] == "authorization-matrix" for item in merged_lanes("black-box")):
         failures.append("black-box plan lacks authorization-matrix lane")
+    if not any(item["id"] == "environment-toolchain" for item in merged_lanes("black-box")):
+        failures.append("engagement plan lacks environment/toolchain inventory lane")
+    if not any(item["id"] == "prior-art-method-mining" for item in merged_lanes("white-box")):
+        failures.append("engagement plan lacks prior-art method-mining lane")
     if not any(item["id"] == "source-dataflow" for item in merged_lanes("white-box")):
         failures.append("white-box plan lacks source-dataflow lane")
     hybrid_lane_ids = [item["id"] for item in merged_lanes("hybrid")]
     if len(hybrid_lane_ids) != len(set(hybrid_lane_ids)) or "source-dataflow" not in hybrid_lane_ids:
         failures.append("hybrid plan does not merge black/gray/white lanes deterministically")
+
+    installed = {"rg", "subfinder", "httpx", "katana", "ffuf", "semgrep", "slither", "forge"}
+    tool_strategy = build_strategy(
+        "hybrid",
+        ["web", "web3"],
+        ["remote code execution"],
+        "large-scope",
+        which_func=lambda name: f"/tools/{name}" if name in installed else None,
+    )
+    tool_stage_ids = {item["id"] for item in tool_strategy["stages"]}
+    if not {"passive-enumeration", "endpoint-and-client-map", "focused-fuzzing", "source-and-dependency-analysis", "web3-invariant-analysis"} <= tool_stage_ids:
+        failures.append(f"tool strategy omitted required research stages: {sorted(tool_stage_ids)}")
+    if "role_and_tenant" not in tool_strategy["correlation_keys"] or tool_strategy["inventory"]["available_count"] < len(installed):
+        failures.append("tool strategy does not preserve cross-tool correlation or installed-tool inventory")
+
+    self_review = scenario_record(
+        template,
+        {
+            "id": "self-review-x1",
+            "work_mode": "local-lab",
+            "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1"],
+            "not_applicable": [],
+        },
+    )
+    self_review["validation"]["validator_owner"] = self_review["validation"]["discovery_owner"]
+    self_review_errors, _self_review_warnings = validate(self_review)
+    if not any("self-review" in error for error in self_review_errors):
+        failures.append("X1 accepts self-review by the discovery owner")
+    if calculate_effective_state(self_review, self_review_errors) != "substantiated":
+        failures.append("invalid X1 self-review is not capped at substantiated")
 
     technique_catalog = json.loads(
         (ROOT / "references" / "techniques" / "current-techniques.json").read_text(encoding="utf-8")

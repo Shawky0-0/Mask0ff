@@ -24,12 +24,13 @@ Do not use high-severity labels as substitutes for evidence. In particular:
 - Name only controlled session labels, roles, and tenants; never include credential values, Authorization headers, cookies, signed URLs, or private keys.
 - Separate observed impact from bounded potential impact.
 - Include the baseline, changed variable, vulnerable result, negative control, repeat, and fix control.
+- Include the X1 independence mode, discovery and validator ownership separation, blind-packet hash, separate reproduction/control evidence, challenged alternatives, chain review, and environmental limitations.
 - Use exact versions, commits, hashes, timestamps, and evidence IDs.
 - Ensure each material claim in the finding record cites known evidence and that the report cites at least one supporting evidence ID for every claim.
 - Explain why the closest public issue is the same, a variant, an incomplete fix, unrelated, or unknowable.
 - Give remediation at the invariant or root-cause decision, then recommend an adjacent-path audit.
 - Include a safety statement describing owned data and deliberately avoided actions.
-- Treat modern-technique catalog matches as cited hypothesis leads, never as evidence that the target is vulnerable.
+- Treat modern-technique catalog, scanner, and fuzzer matches as cited hypothesis leads, never as evidence that the target is vulnerable.
 
 ## Platform-neutral submission structure
 

@@ -34,6 +34,7 @@ GATE_WEIGHTS = {
     "P1": 20,
     "C1": 15,
     "R1": 15,
+    "X1": 20,
     "I1": 10,
     "S1": 3,
     "V1": 2,
@@ -50,6 +51,7 @@ NEXT_ACTIONS = {
     "P1": "Run the minimum safe controlled proof with owned accounts, synthetic data, or a local lab.",
     "C1": "Add negative, differential, wrong-role, intended-behavior, and patched controls as applicable.",
     "R1": "Repeat from clean state and preserve a second distinct run artifact.",
+    "X1": "Hand a blind evidence packet to a separate validator; require independent reproduction artifacts, adversarial chain review, and alternative-explanation controls.",
     "I1": "Separate observed impact from bounded inference and record preconditions and blast radius.",
     "S1": "Trace the root cause or record a calibrated black-box root-cause hypothesis.",
     "V1": "Test or source-trace the affected version and configuration range.",
@@ -199,6 +201,38 @@ def repeat_ratio(record: dict[str, Any], valid_ids: set[str]) -> tuple[float, di
     }
 
 
+def independent_validation_ratio(record: dict[str, Any], valid_ids: set[str]) -> tuple[float, dict[str, Any]]:
+    validation = record.get("validation") if isinstance(record.get("validation"), dict) else {}
+    gates = record.get("gates", {}) if isinstance(record.get("gates"), dict) else {}
+    x1 = gates.get("X1", {}) if isinstance(gates.get("X1"), dict) else {}
+    refs = {str(ref) for ref in x1.get("evidence", [])}
+    review_id = str(validation.get("review_evidence_id", "")).strip()
+    packet_id = str(validation.get("blind_packet_evidence_id", "")).strip()
+    reproduction = {str(ref) for ref in validation.get("reproduction_evidence", [])}
+    owners_distinct = bool(validation.get("discovery_owner") and validation.get("validator_owner")) and str(
+        validation.get("discovery_owner")
+    ).casefold() != str(validation.get("validator_owner")).casefold()
+    complete = (
+        status(record, "X1") == "pass"
+        and validation.get("verdict") == "confirmed"
+        and owners_distinct
+        and review_id in valid_ids
+        and packet_id in valid_ids
+        and bool(reproduction)
+        and not (reproduction - valid_ids)
+        and refs <= valid_ids
+    )
+    return (1.0 if complete else 0.0), {
+        "status": status(record, "X1"),
+        "independence": validation.get("independence"),
+        "owners_distinct": owners_distinct,
+        "blind_packet_evidence_id": packet_id or None,
+        "review_evidence_id": review_id or None,
+        "reproduction_evidence": sorted(reproduction),
+        "independence_ratio": 1.0 if complete else 0.0,
+    }
+
+
 def error_affects_gate(error: str, gate: str, refs: set[str]) -> bool:
     return error.startswith(gate) or any(ref and ref in error for ref in refs)
 
@@ -224,9 +258,10 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
     claims = claim_metrics(record, valid_ids)
     controls_ratio, controls = control_ratio(record, valid_ids)
     repeats_ratio, repeats = repeat_ratio(record, valid_ids)
+    validation_ratio, independent_validation = independent_validation_ratio(record, valid_ids)
 
     gate_rows = []
-    gate_score = 0
+    gate_points = 0
     gates = record.get("gates", {})
     for gate in GATES:
         item = gates.get(gate, {}) if isinstance(gates, dict) else {}
@@ -237,7 +272,7 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
         )
         invalidated = any(error_affects_gate(error, gate, refs) for error in errors)
         awarded = GATE_WEIGHTS[gate] if structurally_complete and not invalidated else 0
-        gate_score += awarded
+        gate_points += awarded
         gate_rows.append(
             {
                 "gate": gate,
@@ -249,11 +284,13 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
             }
         )
 
-    integrity_component = 40 * evidence["integrity_ratio"]
-    claim_component = 20 * claims["support_ratio"]
+    gate_score = round(100 * gate_points / sum(GATE_WEIGHTS.values()))
+    integrity_component = 25 * evidence["integrity_ratio"]
+    claim_component = 15 * claims["support_ratio"]
     control_component = 20 * controls_ratio
-    repeat_component = 20 * repeats_ratio
-    evidence_quality = round(integrity_component + claim_component + control_component + repeat_component)
+    repeat_component = 15 * repeats_ratio
+    validation_component = 25 * validation_ratio
+    evidence_quality = round(integrity_component + claim_component + control_component + repeat_component + validation_component)
     raw_score = round(0.70 * gate_score + 0.30 * evidence_quality)
     score = min(raw_score, STATE_CAPS[effective_state])
 
@@ -271,7 +308,7 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
         score = min(score, 29)
 
     failed_gates = [gate for gate in GATES if status(record, gate) == "fail"]
-    refuting_failure = next((gate for gate in ("H1", "P1", "C1", "R1") if gate in failed_gates), None)
+    refuting_failure = next((gate for gate in ("H1", "P1", "C1", "R1", "X1") if gate in failed_gates), None)
     if authorization_error or effective_state == "blocked":
         verdict = "blocked"
     elif errors:
@@ -357,6 +394,8 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
         recommendations.append("Use control evidence distinct from the proof artifact to reduce false-positive risk.")
     if repeats_ratio < 1.0 and status(record, "R1") == "pass":
         recommendations.append("Use distinct run IDs and distinct clean-run artifacts for reproducibility.")
+    if validation_ratio < 1.0 and status(record, "R1") == "pass":
+        recommendations.append("Keep the finding substantiated until a separate skeptical validator passes X1 from a blind packet and independent reproduction evidence.")
     if claims["support_ratio"] < 1.0:
         recommendations.append("Bind every observed, derived, inferred, and external claim to valid evidence IDs.")
     recommendations = list(dict.fromkeys(recommendations))[:8]
@@ -408,12 +447,14 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
             "claim_support": round(claim_component),
             "control_independence": round(control_component),
             "repeat_independence": round(repeat_component),
+            "adversarial_validation_independence": round(validation_component),
         },
         "gates": gate_rows,
         "evidence": evidence,
         "claims": claims,
         "controls": controls,
         "repeats": repeats,
+        "independent_validation": independent_validation,
         "decision": decision,
         "continue_investigation": continue_investigation,
         "continuation": continuation,

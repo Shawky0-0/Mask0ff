@@ -9,10 +9,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from independent_validation import INDEPENDENCE_MODES, validate_review
+
 
 VALID_STATUSES = {"pending", "pass", "fail", "blocked", "not_applicable"}
-GATES = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1", "S1", "V1", "F1", "D1", "Q1")
-CORE_VERIFIED = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1")
+GATES = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "S1", "V1", "F1", "D1", "Q1")
+CORE_VERIFIED = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1")
 APPLICABILITY = ("S1", "V1", "F1")
 ASSESSMENT_MODES = {"black-box", "gray-box", "white-box", "hybrid"}
 SECRET_KEYS = {
@@ -60,6 +62,10 @@ def calculate_effective_state(record: dict[str, Any], errors: list[str]) -> str:
             return "blocked"
         if any(ref and ref in error for ref in refs):
             return "blocked"
+    if state in {"verified", "reportable"} and any(
+        error.startswith("X1") or error.startswith("validation") for error in errors
+    ):
+        return "substantiated"
     return state
 
 
@@ -304,6 +310,60 @@ def validate(
             errors.append("R1 run IDs are not unique")
         if len(evidence_sets) >= 2 and len(set(evidence_sets)) < 2:
             errors.append("R1 runs reuse the same evidence set")
+
+    if status(record, "X1") == "pass":
+        x1 = gates.get("X1", {}) if isinstance(gates.get("X1"), dict) else {}
+        x1_refs = {str(ref) for ref in x1.get("evidence", [])}
+        review_refs = {
+            ref for ref in x1_refs if str(evidence_by_id.get(ref, {}).get("kind", "")) == "independent-validation"
+        }
+        if not review_refs:
+            errors.append("X1 lacks independent-validation evidence")
+        validation = record.get("validation")
+        if not isinstance(validation, dict):
+            errors.append("validation summary is missing for X1")
+            validation = {}
+        discovery_owner = str(validation.get("discovery_owner", "")).strip()
+        validator_owner = str(validation.get("validator_owner", "")).strip()
+        if not discovery_owner or not validator_owner:
+            errors.append("validation summary lacks discovery and validator owners")
+        elif discovery_owner.casefold() == validator_owner.casefold():
+            errors.append("validation summary records self-review instead of independent validation")
+        if validation.get("independence") not in INDEPENDENCE_MODES:
+            errors.append("validation summary has an invalid independence mode")
+        if validation.get("verdict") != "confirmed":
+            errors.append("validation summary is not independently confirmed")
+        review_id = str(validation.get("review_evidence_id", "")).strip()
+        packet_id = str(validation.get("blind_packet_evidence_id", "")).strip()
+        reproduction_refs = {str(ref) for ref in validation.get("reproduction_evidence", [])}
+        if review_id not in review_refs:
+            errors.append("validation review evidence is not bound to X1")
+        if str(evidence_by_id.get(packet_id, {}).get("kind", "")) != "validation-packet":
+            errors.append("validation summary lacks a preserved blind validation packet")
+        if not reproduction_refs or reproduction_refs - evidence_ids:
+            errors.append("validation summary lacks known independent reproduction evidence")
+        discovery_refs = set()
+        for gate in ("P1", "C1", "R1"):
+            item = gates.get(gate, {}) if isinstance(gates.get(gate), dict) else {}
+            discovery_refs.update(str(ref) for ref in item.get("evidence", []))
+        if reproduction_refs & discovery_refs:
+            errors.append("validation summary reuses discovery evidence as independent reproduction")
+        if record_path is not None and review_id in evidence_by_id:
+            review_item = evidence_by_id[review_id]
+            review_path = (record_path.resolve().parent / str(review_item.get("path", ""))).resolve()
+            try:
+                review = json.loads(review_path.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError) as error:
+                errors.append(f"X1 independent review artifact cannot be read: {error}")
+            else:
+                review_status, review_errors, _review_warnings = validate_review(review, record)
+                if review_status != "pass":
+                    errors.append(f"X1 independent review status is {review_status}")
+                errors.extend(f"X1 review: {item}" for item in review_errors)
+                if str(review.get("validator_owner", "")).strip() != validator_owner:
+                    errors.append("validation summary validator does not match the review artifact")
+                if str(review.get("blind_packet_evidence_id", "")).strip() != packet_id:
+                    errors.append("validation summary packet does not match the review artifact")
     return errors, warnings
 
 

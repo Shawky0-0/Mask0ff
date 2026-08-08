@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-independent-validation",
+  "candidate_id": "",
+  "discovery_owner": "",
+  "validator_owner": "",
+  "independence": "separate-agent",
+  "blind_packet_evidence_id": "",
+  "blind_packet_sha256": "",
+  "scope_rechecked": false,
+  "clean_environment": false,
+  "independent_reproduction_evidence": [],
+  "control_evidence": [],
+  "alternative_explanations": [
+    {
+      "explanation": "",
+      "status": "unknown",
+      "evidence": []
+    }
+  ],
+  "chain_review": [
+    {
+      "link": "",
+      "status": "unknown",
+      "evidence": []
+    }
+  ],
+  "environment_limitations": [],
+  "duplicate_assessment": "",
+  "verdict": "inconclusive",
+  "reason": ""
+}

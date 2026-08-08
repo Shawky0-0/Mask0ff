@@ -23,7 +23,8 @@ Generate a plan dynamically:
 ```powershell
 .\scripts\mask0ff.cmd plan E:\research\program-profile.json `
   --session E:\research\member-session.json --session E:\research\admin-session.json `
-  --target app.example.com --surface web --surface api --signal "unexpected cross-tenant object response"
+  --target app.example.com --surface web --surface api --focus "authentication bypass" `
+  --signal "unexpected cross-tenant object response" --scale multi-asset
 ```
 
-The plan is a routing artifact, not proof. Every finding still requires baseline, proof, controls, clean repeats, bounded impact, duplicate review, and assessment.
+The plan inventories the current tool environment and returns a staged correlation workflow. It is a routing artifact, not proof. Update it when roles, code, configuration, tools, scale, or signals change. Every finding still requires baseline, proof, controls, clean repeats, independent X1 validation, bounded impact, duplicate review, and assessment. Read [research-operations.md](research-operations.md) before large-scope or tool-heavy work.

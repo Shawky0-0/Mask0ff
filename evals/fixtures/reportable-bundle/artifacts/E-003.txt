@@ -1,0 +1,1 @@
+separate validator reproduced the controlled fixture in fresh state

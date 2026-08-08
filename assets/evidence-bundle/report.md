@@ -36,6 +36,8 @@
 - Vulnerable-run evidence:
 - Negative/differential controls:
 - Independent repeat:
+- Independent X1 validator, blind-packet hash, and separate reproduction evidence:
+- Alternative explanations and exploit-chain links challenged by the validator:
 - Fix control:
 
 ## Expected behavior
@@ -75,6 +77,7 @@
 ## Verification status
 
 - Gate result:
+- Independent-validation verdict and remaining environmental limitations:
 - Validation-confidence score and band:
 - False-positive risk:
 - Severity recommendation or reviewed CVSS vector:

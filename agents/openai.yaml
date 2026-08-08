@@ -1,4 +1,4 @@
 interface:
   display_name: "mask0ff Security Research"
-  short_description: "Dynamic authorized research with verified evidence"
-  default_prompt: "Use $mask0ff to import this program scope, use any supplied researcher session safely, select black/gray/white-box mode, and continue evidence-first until a terminal finding state."
+  short_description: "Tool-led research with independent validation"
+  default_prompt: "Use $mask0ff to import this scope, inventory the available research toolchain, learn relevant prior methods, investigate adaptive hypotheses, and keep every candidate unverified until a separate X1 validator reproduces it."

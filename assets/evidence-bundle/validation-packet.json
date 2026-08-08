@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-validation-packet",
+  "candidate_id": "",
+  "authorization_and_scope_evidence": [],
+  "target_and_environment": {},
+  "candidate_claim": {
+    "actor": "",
+    "controlled_input": "",
+    "boundary": "",
+    "expected_result": "",
+    "observed_result": ""
+  },
+  "raw_evidence_ids": [],
+  "reproduction_prerequisites": [],
+  "known_environment_constraints": [],
+  "excluded_material": [
+    "discovery chain-of-thought",
+    "desired verdict",
+    "suggested severity",
+    "unsupported impact claims"
+  ]
+}

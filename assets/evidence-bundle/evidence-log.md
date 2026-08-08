@@ -55,6 +55,17 @@
 - Run 1 state and artifact hashes:
 - Run 2 state and artifact hashes:
 
+## Independent adversarial validation
+
+- Discovery owner:
+- Validator owner and independence mode:
+- Blind validation-packet evidence ID and SHA-256:
+- Independent reproduction and control evidence IDs:
+- Alternative explanations challenged:
+- Exploit-chain gaps or failed assumptions:
+- Environmental limitations:
+- X1 verdict and reason:
+
 ## Observed versus inferred impact
 
 - Observed:

@@ -14,6 +14,7 @@ Search the library before opening long files. Use `.\scripts\mask0ff.cmd techniq
 | Workflows, races, integrity, logging, business rules | `techniques/08-business-logic-race-operations/` |
 | Dependencies and supply chain | `techniques/09-components-supply-chain/` |
 | LLM tools, agent trust, prompt injection, approval boundaries | `techniques/10-llm-web-security/` |
+| Smart contracts, DeFi, bridges, chain identities, protocol invariants | [vulnerability-playbooks.md](vulnerability-playbooks.md) Web3 route plus current official ecosystem documentation |
 
 Modern signals without a dedicated inherited file still route cleanly:
 
@@ -28,6 +29,7 @@ Modern signals without a dedicated inherited file still route cleanly:
 | Mobile, desktop, deep links, WebViews, IPC | Client and API directories; keep platform-native boundaries explicit |
 | CI/CD identities, artifact provenance, deployment mapping | Supply-chain directory and white-box source map |
 | Exceptional conditions, partial failure, rollback | Business-logic directory plus `OWASP-2025-A10` |
+| RCE, SQLi, XSS, SSRF, auth bypass, deserialization, races, Web3 | Read the matching route in [vulnerability-playbooks.md](vulnerability-playbooks.md), then select target-specific tools with [research-operations.md](research-operations.md) |
 
 For white-box or hybrid work, start from entry points, authorization middleware, serializers, parsers, canonicalizers, cache keys, job consumers, integration clients, and security-sensitive sinks. Search sibling call sites by the required fix invariant. Use runtime behavior to prioritize source paths and local regression tests to falsify the hypothesis.
 

@@ -19,10 +19,10 @@ Run after every material evidence or gate change:
 
 | Component | Contribution |
 |---|---:|
-| Weighted gate completion | 70% |
-| Artifact integrity, claim support, independent controls, and independent repeats | 30% |
+| Weighted gate completion, including X1 | 70% |
+| Artifact integrity, claim support, controls, repeats, and independent adversarial validation | 30% |
 
-The evidence-quality portion is divided into 40 points for valid contained artifacts, 20 for supported claims, 20 for controls distinct from the proof, and 20 for repeat runs with distinct IDs and evidence sets.
+The evidence-quality portion is divided into 25 points for valid contained artifacts, 15 for supported claims, 20 for controls distinct from the proof, 15 for repeat runs with distinct IDs and evidence sets, and 25 for a complete X1 handoff with distinct owners, a valid blind packet, independent reproduction evidence, and a bound review artifact.
 
 State caps prevent score inflation:
 
@@ -34,7 +34,7 @@ State caps prevent score inflation:
 | Verified | 89 |
 | Reportable | 100 |
 
-Authorization errors cap the score at 10. Other validation errors cap it at 29. Gate labels alone cannot earn full confidence when artifacts, claims, controls, or repeats are weak.
+Authorization errors cap the score at 10. Other validation errors cap it at 29. Gate labels alone cannot earn full confidence when artifacts, claims, controls, repeats, or validator independence are weak. Self-review never earns the X1 component.
 
 The score is not CVSS, severity, legal authorization, novelty, or a guarantee of objective truth. Severity remains deferred until `I1` passes and the finding is verified; then calculate or review CVSS from demonstrated impact and preconditions.
 
@@ -43,12 +43,12 @@ The score is not CVSS, severity, legal authorization, novelty, or a guarantee of
 - `blocked`: active testing stops; passive analysis or an owned local reproduction may continue.
 - `invalid-record`: repair evidence integrity or schema errors before drawing a conclusion.
 - `candidate`: the signal is not demonstrated; execute the recommended next gate.
-- `substantiated`: a controlled effect exists, but controls, repeatability, impact, or authorization/report gates remain.
+- `substantiated`: a controlled effect exists, but controls, repeatability, independent X1 validation, impact, or authorization/report gates remain.
 - `verified`: the boundary failure is supported; do not escalate impact further, and finish D1/Q1.
 - `reportable`: stop technical escalation, redact, and prepare authorized submission.
 - `refuted-or-not-reproducible`: preserve the failed hypothesis and pivot only from a new observed signal.
 
-Always return the verdict, score and confidence band, false-positive risk, errors, gate table, severity recommendation, duplicate status, decision, continuation mode, next gate, and next safe action.
+Always return the verdict, score and confidence band, false-positive risk, errors, gate table, independent-validation status and evidence, severity recommendation, duplicate status, decision, continuation mode, next gate, and next safe action.
 
 ## Bounded persistence
 

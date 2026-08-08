@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-validation-packet",
+  "candidate_id": "reportable-fixture",
+  "authorization_and_scope_evidence": ["E-001"],
+  "target_and_environment": {
+    "target": "owned deterministic local fixture",
+    "revision": "v3.1 fixture"
+  },
+  "candidate_claim": {
+    "actor": "local evaluator",
+    "controlled_input": "synthetic finding record",
+    "boundary": "unsupported assertion to verified state",
+    "expected_result": "unsupported state is rejected",
+    "observed_result": "discovery artifacts show deterministic rejection"
+  },
+  "raw_evidence_ids": ["E-001", "E-002"],
+  "reproduction_prerequisites": ["owned local fixture"],
+  "known_environment_constraints": [],
+  "excluded_material": [
+    "discovery chain-of-thought",
+    "desired verdict",
+    "suggested severity",
+    "unsupported impact claims"
+  ]
+}

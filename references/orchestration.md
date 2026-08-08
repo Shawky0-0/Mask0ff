@@ -11,12 +11,22 @@ Use specialized agents only when the user explicitly requests delegation, parall
 - Return observed facts, artifact references, prioritized hypotheses, and uncertainty.
 - Do not claim a vulnerability or propose active tests outside recorded scope.
 
+### `mask0ff_researcher`
+
+- Own creative discovery and methodology adaptation, never final validation.
+- Inventory available tools, mine relevant prior art, onboard unfamiliar technology, correlate outputs, and generate ranked falsifiable hypotheses.
+- Search trust-boundary, state, permission, parser, identity, configuration, and feature-interaction assumptions.
+- Stop ownership at the candidate handoff. Do not decide X1, verified state, severity, or reportability.
+
 ### `mask0ff_verifier`
 
 - Own one finding candidate and its evidence record.
 - Design the minimum safe proof, baselines, controls, repeat runs, root-cause trace, affected range, and fix control.
 - Use only owned data, local labs, or explicitly authorized targets.
 - Return the gate table and raw artifact references; do not self-approve A0 or D1.
+- Receive a blind packet, not discovery reasoning or a desired verdict. Begin from the presumption that the candidate is false.
+- Recheck scope, rebuild clean state, create new reproduction/control artifacts, challenge alternative explanations, and audit every exploit-chain link.
+- Never pass X1 when the validator and discovery owner are the same or when proof/control evidence is reused.
 
 ### `mask0ff_duplicate_researcher`
 
@@ -37,7 +47,7 @@ Use specialized agents only when the user explicitly requests delegation, parall
 Keep these decisions in the parent:
 
 - Interpret authorization and pass or block A0.
-- Select exact tasks and artifact inputs for each agent.
+- Select exact tasks and artifact inputs for each agent and keep creative discovery separate from adversarial validation.
 - Prevent overlapping write ownership.
 - Reconcile contradictions by inspecting raw evidence.
 - Make final D1, Q1, state, severity, and submission decisions.
@@ -45,18 +55,21 @@ Keep these decisions in the parent:
 ## Artifact flow
 
 ```text
-scope/policy -> mapper -> target model + hypotheses
-target model + one hypothesis -> verifier -> finding record + evidence bundle
+scope/policy -> mapper -> target model
+target model + prior art + tool outputs -> researcher -> candidate hypotheses
+neutral candidate + raw evidence -> parent -> hash-bound blind packet
+blind packet -> separate verifier -> new proof/controls + X1 review
 finding fingerprint -> duplicate researcher -> duplicate-review.md
 verified record + duplicate review -> report reviewer -> Q1 review
 all artifacts -> parent -> final state and report
 ```
 
-Run mapper and duplicate research in parallel only when they do not depend on each other's results. Give evidence-bundle writes to one verifier. Run report review only after the finding record and duplicate review stabilize.
+Run mapper, researcher, and duplicate work in parallel only when their inputs are independent. Give evidence-bundle writes to one owner. The discovery owner must not become the X1 verifier. Run report review only after the finding record, independent review, and duplicate review stabilize.
 
 ## Failure handling
 
 - Conflicting agent conclusions: inspect underlying artifacts; do not vote.
+- No independent validator available: leave X1 pending and cap the candidate at substantiated.
 - Missing scope: stop active agents and remain passive.
 - Tool or network failure: mark the gate pending and preserve the exact error.
 - Unsafe proof requirement: use a local/dry-run substitute or bound the impact as inference.

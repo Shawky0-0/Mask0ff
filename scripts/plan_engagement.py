@@ -11,6 +11,15 @@ from typing import Any
 
 from program_profile import validate_profile
 from session_profile import validate_session
+from tool_inventory import build_strategy
+
+
+COMMON_LANES: list[dict[str, Any]] = [
+    {"id": "environment-toolchain", "priority": 1, "goal": "Inventory installed research tools and compose a scope-filtered, evidence-producing pipeline before defaulting to manual reasoning."},
+    {"id": "technology-onboarding", "priority": 2, "goal": "Fingerprint unfamiliar technologies and versions, then learn their official security model, architecture, release history, and common failure boundaries."},
+    {"id": "prior-art-method-mining", "priority": 3, "goal": "Study relevant advisories, patches, public reports, tests, and write-ups to extract discovery methods, sources, sinks, bypasses, controls, and fix invariants."},
+    {"id": "interaction-invariants", "priority": 4, "goal": "Question cross-feature assumptions by modeling trust boundaries, permission decisions, state transitions, asynchronous behavior, and parser or protocol differentials."},
+]
 
 
 MODE_LANES: dict[str, list[dict[str, Any]]] = {
@@ -46,6 +55,9 @@ SURFACE_HINTS = {
     "desktop": ["custom protocol and update boundaries", "local IPC and file handling", "embedded browser and backend API trust"],
     "browser-extension": ["message sender validation", "host permissions and content-script boundaries", "native messaging and update integrity"],
     "cloud": ["identity and tenant boundaries", "metadata and callback controls", "configuration and supply-chain paths"],
+    "infrastructure": ["external-to-internal asset mapping", "identity and network boundaries", "configuration and deployment drift"],
+    "kubernetes": ["service-account and RBAC boundaries", "admission and workload identity", "network and secret reachability"],
+    "serverless": ["event source trust", "execution identity and tenancy", "environment and integration boundaries"],
     "grpc": ["method-level authorization", "metadata and reflection exposure", "protobuf presence/default interpretation"],
     "sse": ["stream authorization and reconnect state", "event data separation", "cache and proxy handling"],
     "webhook": ["signature and replay controls", "redirect and SSRF boundaries", "event ordering and tenant binding"],
@@ -53,6 +65,9 @@ SURFACE_HINTS = {
     "ci-cd": ["workflow identity and permissions", "untrusted build inputs", "artifact provenance and deployment mapping"],
     "source": ["dataflow", "variant analysis", "dependency and build integrity"],
     "ai-agent": ["tool authorization", "prompt/data trust separation", "approval and consequential-field visibility"],
+    "web3": ["contract and protocol invariants", "privileged and upgrade paths", "stateful fuzzing and cross-contract interactions"],
+    "evm": ["call and delegatecall boundaries", "signature and replay domains", "storage, oracle, accounting, and upgrade invariants"],
+    "solana": ["account ownership and signer checks", "PDA and CPI boundaries", "instruction ordering and state invariants"],
 }
 
 
@@ -64,11 +79,15 @@ def load_object(path: Path) -> dict[str, Any]:
 
 
 def merged_lanes(mode: str) -> list[dict[str, Any]]:
-    if mode != "hybrid":
-        return [dict(item) for item in MODE_LANES[mode]]
     seen: set[str] = set()
     output: list[dict[str, Any]] = []
-    for current_mode in ("black-box", "gray-box", "white-box"):
+    for item in COMMON_LANES:
+        copy = dict(item)
+        copy["priority"] = len(output) + 1
+        output.append(copy)
+        seen.add(copy["id"])
+    modes = (mode,) if mode != "hybrid" else ("black-box", "gray-box", "white-box")
+    for current_mode in modes:
         for item in MODE_LANES[current_mode]:
             if item["id"] in seen:
                 continue
@@ -108,6 +127,8 @@ def build_plan(args: argparse.Namespace) -> int:
         for lane in lanes:
             lane["signal"] = args.signal
     surfaces = args.surface or []
+    focuses = args.focus or []
+    tool_strategy = build_strategy(assessment_mode, surfaces, focuses, args.scale)
     plan = {
         "schema_version": 1,
         "program_or_owner": profile["program_or_owner"],
@@ -126,6 +147,8 @@ def build_plan(args: argparse.Namespace) -> int:
             {"name": surface, "focus": SURFACE_HINTS.get(surface, ["map observed trust boundaries before selecting tests"])}
             for surface in surfaces
         ],
+        "focuses": focuses,
+        "tool_strategy": tool_strategy,
         "lanes": lanes,
         "dynamic_recommendations": [],
         "evidence_requirements": [
@@ -133,6 +156,7 @@ def build_plan(args: argparse.Namespace) -> int:
             "use researcher-owned accounts or synthetic data",
             "run negative and intended-behavior controls",
             "repeat in a clean state with distinct evidence",
+            "route any verified claim through an independent X1 challenge using a blind evidence packet and separate reproduction artifacts",
             "assess after each material gate or evidence change",
         ],
         "warnings": profile_warnings + session_warnings,
@@ -148,6 +172,11 @@ def build_plan(args: argparse.Namespace) -> int:
         recommendations.append("Record repository revision, build command, test command, reachable deployment version, and source-to-runtime mapping before claiming affected production code.")
     if args.signal:
         recommendations.append("Turn the supplied signal into one falsifiable hypothesis; do not spray unrelated technique families.")
+    if focuses:
+        recommendations.append("Mine prior reports, advisories, patches, and framework documentation for each focus before direct testing; extract methods and false-positive controls, not payload lists.")
+    if tool_strategy["inventory"]["available_count"]:
+        recommendations.append("Execute the relevant installed-tool stages, preserve structured outputs, and correlate them by scope, asset, endpoint, technology, role, state, source symbol, and run ID.")
+    recommendations.append("Keep discovery ownership separate from the X1 validator; self-review cannot promote a finding to verified.")
     if args.output:
         output = args.output.resolve()
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -165,6 +194,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target")
     parser.add_argument("--surface", choices=sorted(SURFACE_HINTS), action="append")
     parser.add_argument("--signal")
+    parser.add_argument("--focus", action="append", help="Vulnerability class, technology, or research objective")
+    parser.add_argument("--scale", choices=("adaptive", "single-target", "multi-asset", "large-scope"), default="adaptive")
     parser.add_argument("--output", type=Path)
     return parser
 

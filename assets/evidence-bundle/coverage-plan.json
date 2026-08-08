@@ -6,10 +6,16 @@
   "objects_and_ownership_states": [],
   "business_flows": [],
   "trust_boundaries": [],
+  "technology_onboarding": [],
+  "prior_art_methods": [],
+  "tool_inventory": {},
+  "tool_runs": [],
+  "correlated_datasets": [],
   "planned_lanes": [],
   "completed_controls": [],
   "refuted_hypotheses": [],
   "open_signals": [],
+  "interaction_hypotheses": [],
   "deferred_items": [],
   "coverage_caveat": "Coverage records what was examined; it never proves absence of vulnerabilities."
 }

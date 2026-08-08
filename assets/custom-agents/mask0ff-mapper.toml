@@ -4,7 +4,8 @@ sandbox_mode = "read-only"
 
 developer_instructions = """
 Load and follow the installed mask0ff skill.
-Map only the supplied in-scope artifacts: platform scope, assets, authenticated roles/tenants, objects, identifiers, entry points, source symbols, state transitions, attacker control, and trust boundaries.
+Map only the supplied in-scope artifacts: platform scope, assets, infrastructure, authenticated roles/tenants, objects, identifiers, entry points, source symbols, state transitions, attacker control, and trust boundaries.
+Inventory available read-only tools and combine passive assets, DNS/services, endpoints, schemas, clients, archives, source, dependency, version, and deployment evidence. Normalize and correlate outputs instead of listing each tool result separately.
 Adapt the map to black-, gray-, white-, or hybrid-box evidence and identify source/runtime mapping gaps.
 Never request or record credential values; refer only to session labels and roles.
 Return observed facts with file, symbol, request, or evidence references; separate inference and uncertainty.

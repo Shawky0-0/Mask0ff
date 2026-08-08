@@ -37,6 +37,7 @@
     "P1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
     "C1": {"status": "pass", "evidence": ["E-002"], "reason": ""},
     "R1": {"status": "pass", "evidence": ["E-001", "E-002"], "reason": ""},
+    "X1": {"status": "pass", "evidence": ["E-006", "E-003", "E-004", "E-005"], "reason": ""},
     "I1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
     "S1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
     "V1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
@@ -64,12 +65,62 @@
       "captured_at_utc": "2026-08-02T15:01:00Z",
       "observation": "Independent control and repeat fixture.",
       "redacted": false
+    },
+    {
+      "id": "E-003",
+      "kind": "independent-reproduction",
+      "path": "artifacts/E-003.txt",
+      "sha256": "7db233e8bf765b54ae8d0a4622336c9ff9f6e9d6761fe4c78252e988deff49c5",
+      "size_bytes": 68,
+      "captured_at_utc": "2026-08-02T15:02:00Z",
+      "observation": "Separate validator clean-state reproduction.",
+      "redacted": false
+    },
+    {
+      "id": "E-004",
+      "kind": "independent-control",
+      "path": "artifacts/E-004.txt",
+      "sha256": "c405b4060459511caf2c860db02bd92082f02db759f57962efae95ad4f01adea",
+      "size_bytes": 68,
+      "captured_at_utc": "2026-08-02T15:03:00Z",
+      "observation": "Separate validator negative control.",
+      "redacted": false
+    },
+    {
+      "id": "E-005",
+      "kind": "validation-packet",
+      "path": "artifacts/E-005-validation-packet.json",
+      "sha256": "f440ee8a2ad52b32c4051d0c9ca85b6f14f6e3e4a452ad9509836a2a31cc4a19",
+      "size_bytes": 855,
+      "captured_at_utc": "2026-08-02T15:04:00Z",
+      "observation": "Hash-bound blind validation packet.",
+      "redacted": false
+    },
+    {
+      "id": "E-006",
+      "kind": "independent-validation",
+      "path": "artifacts/E-006-independent-validation.json",
+      "sha256": "8954d3e1939702c89bd33653360488c43daf8f68da225a524f18802f37d5b144",
+      "size_bytes": 1269,
+      "captured_at_utc": "2026-08-02T15:05:00Z",
+      "observation": "Independent X1 review artifact.",
+      "redacted": false
     }
   ],
   "runs": [
     {"id": "run-1", "evidence": ["E-001"]},
     {"id": "run-2", "evidence": ["E-002"]}
   ],
+  "validation": {
+    "status": "pass",
+    "independence": "separate-agent",
+    "discovery_owner": "mask0ff_researcher",
+    "validator_owner": "mask0ff_verifier",
+    "blind_packet_evidence_id": "E-005",
+    "review_evidence_id": "E-006",
+    "reproduction_evidence": ["E-003"],
+    "verdict": "confirmed"
+  },
   "claims": [
     {"statement": "The local proof artifact is intact.", "basis": "observed", "evidence": ["E-001"]},
     {"statement": "The independent control artifact is intact.", "basis": "observed", "evidence": ["E-002"]}

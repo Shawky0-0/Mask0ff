@@ -2,6 +2,8 @@
 
 Use web research to supplement evidence, never to replace target-specific proof or written authorization.
 
+For a named vulnerability class or unfamiliar technology, research methodology before direct testing. Mine comparable reports, advisories, patches, tests, and official framework/protocol documentation for sources, sinks, missing invariants, proof methods, false-positive controls, and incomplete-fix patterns. This prior-art learning is distinct from the later D1 duplicate decision; similarity is a hypothesis source, not a vulnerability or duplicate verdict. Read [research-operations.md](research-operations.md).
+
 ## Before searching
 
 1. Run `.\scripts\mask0ff.cmd sources --json` and preserve the result in the D1 evidence.

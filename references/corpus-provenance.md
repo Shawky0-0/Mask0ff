@@ -33,7 +33,9 @@ Each row preserves its source-relative path and SHA-256. The SQLite `metadata` t
 
 ## Text-corpus sanitation and licensing boundary
 
-The inherited technique notes contained embedded NUL/control characters and broken private citation markers. Version 3 normalizes those artifacts to visible text, and `scripts/audit_corpus.py --fail-on-issues` prevents their reintroduction. The large XSS index is navigation-only research material, not proof and not a recommended spray list.
+The inherited technique notes contained embedded NUL/control characters, broken private citation markers, and several payload-dump files that triggered endpoint protection during validation. Version 3 normalized corrupt text. The current revision replaces the WebSocket, XML external-entity, and logging/monitoring payload-heavy notes with researcher-authored methodology, tool-correlation, safety, evidence, and false-positive-control references. It does not preserve their bulk exploit strings. The large XSS index remains navigation-only research material, not proof and not a recommended spray list.
+
+On Windows, `scripts/audit_corpus.py --fail-on-issues` reads unchanged tracked text from Git's index and reads modified or untracked text directly from the worktree. This preserves full corruption and link auditing without repeatedly opening dormant payload files through endpoint-protection filters. It reports the count from each source and treats any read failure as blocking.
 
 Original item-level provenance and licensing for much of the inherited technique library remains unclear. Do not republish that library as a standalone corpus or treat its uncited prose as authoritative. Important claims must be rechecked against current primary sources. This uncertainty does not apply to the separately attributed CVE and GitHub-reviewed datasets or to the researcher-authored redacted methodological cases.
 

@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from authorization_gate import evaluate
+from independent_validation import referenced_evidence, validate_review
 from program_profile import validate_profile
 from session_profile import validate_session
 
@@ -93,6 +94,8 @@ def init_bundle(args: argparse.Namespace) -> int:
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "report.md", bundle / "report.md")
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "coverage-plan.json", bundle / "coverage-plan.json")
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "source-map.json", bundle / "source-map.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "validation-packet.json", bundle / "validation-packet.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "independent-validation.json", bundle / "independent-validation.json")
     print(path)
     return 0
 
@@ -298,6 +301,64 @@ def set_gate(args: argparse.Namespace) -> int:
     return 0
 
 
+def bind_challenge(args: argparse.Namespace) -> int:
+    bundle = args.bundle.resolve()
+    record_path, record = load_record(bundle)
+    source = args.review.resolve()
+    if not source.is_file():
+        raise ValueError(f"independent validation review is not a file: {source}")
+    review = json.loads(source.read_text(encoding="utf-8-sig"))
+    if not isinstance(review, dict):
+        raise ValueError("independent validation review must be a JSON object")
+    review_status, errors, warnings = validate_review(review, record)
+    if errors:
+        raise ValueError("; ".join(errors))
+
+    evidence_id = next_evidence_id(record)
+    destination = bundle / "artifacts" / "raw" / f"{evidence_id}-independent-validation.json"
+    shutil.copy2(source, destination)
+    item = evidence_item(
+        bundle,
+        destination,
+        evidence_id=evidence_id,
+        kind="independent-validation",
+        observation=f"Independent X1 challenge verdict: {review.get('verdict')}",
+    )
+    record.setdefault("evidence", []).append(item)
+    reproduction = [str(ref) for ref in review.get("independent_reproduction_evidence", [])]
+    record["validation"] = {
+        "status": review_status,
+        "independence": review.get("independence", ""),
+        "discovery_owner": review.get("discovery_owner", ""),
+        "validator_owner": review.get("validator_owner", ""),
+        "blind_packet_evidence_id": review.get("blind_packet_evidence_id", ""),
+        "review_evidence_id": evidence_id,
+        "reproduction_evidence": reproduction,
+        "verdict": review.get("verdict", ""),
+    }
+    gate_status = {"pass": "pass", "fail": "fail", "pending": "pending"}[review_status]
+    gate_refs = [evidence_id, *sorted(referenced_evidence(review))]
+    record["gates"]["X1"] = {
+        "status": gate_status,
+        "evidence": list(dict.fromkeys(gate_refs)),
+        "reason": "" if gate_status == "pass" else str(review.get("reason", "")),
+    }
+    save_record(record_path, record)
+    print(
+        json.dumps(
+            {
+                "status": review_status,
+                "evidence": item,
+                "validation": record["validation"],
+                "gate": record["gates"]["X1"],
+                "warnings": warnings,
+            },
+            indent=2,
+        )
+    )
+    return 0 if review_status == "pass" else 2
+
+
 def verify_bundle(args: argparse.Namespace) -> int:
     bundle = args.bundle.resolve()
     record_path, record = load_record(bundle)
@@ -418,6 +479,11 @@ def build_parser() -> argparse.ArgumentParser:
     gate.add_argument("--evidence", action="append")
     gate.add_argument("--reason")
     gate.set_defaults(handler=set_gate)
+
+    challenge = subparsers.add_parser("challenge")
+    challenge.add_argument("bundle", type=Path)
+    challenge.add_argument("review", type=Path)
+    challenge.set_defaults(handler=bind_challenge)
 
     verify = subparsers.add_parser("verify")
     verify.add_argument("bundle", type=Path)
