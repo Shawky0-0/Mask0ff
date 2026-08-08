@@ -27,6 +27,7 @@ COMMANDS = {
     "opencode": "validate_opencode.py",
     "plan": "plan_engagement.py",
     "profile": "program_profile.py",
+    "race": "race_condition.py",
     "report": "report_lint.py",
     "redact": "redact_artifact.py",
     "search": "search_library.py",

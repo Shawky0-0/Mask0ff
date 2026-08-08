@@ -47,6 +47,7 @@ Select by capability, not brand loyalty. Prefer an already installed equivalent 
 | Authenticated/browser analysis | A signed-in browser, proxy, Playwright, mitmproxy, ZAP | Role-bound request/response and DOM/runtime evidence |
 | Source/dependency analysis | `rg`, Semgrep, CodeQL, lockfile/SBOM tools | Entry point, transforms, guard, sink, reachable version |
 | Runtime/local lab | Test framework, Docker/Podman, strace, debugger, packet capture | Clean run ID, environment, effect, hashes |
+| Race delivery and state analysis | Burp Repeater/Turbo Intruder, protocol-aware clients, deterministic schedulers, bundled barrier runner | Sequential baseline, delivery primitive, lane ordering, events, authoritative state delta |
 | Cloud/infrastructure | Provider CLIs, kubectl, Terraform, Helm, Trivy | Resource, identity, tenant, route, configuration |
 | Web3 | Slither, Echidna, Medusa, Foundry, local chain/fork tools | Contract revision, actor, call trace, invariant, state delta |
 
@@ -97,6 +98,15 @@ Never install tools, update templates, or fetch wordlists implicitly during an e
 - Trace controlled input through parsers, canonicalizers, serializers, policy checks, queues, templates, interpreters, process launchers, database APIs, URL fetchers, and other sinks.
 - Search sibling callers by the missing invariant rather than the original string.
 - Confirm scanner paths manually and build a focused local regression or differential harness.
+
+### 7. Race-condition state analysis
+
+- Run `race plan` when the focus includes races, TOCTOU, idempotency, atomicity, double-spend, partial construction, or concurrent state transitions.
+- Establish two clean sequential baselines and an explicit reset before synchronized delivery.
+- Fingerprint the transport and select a real HTTP/2 single-packet, HTTP/1.1 last-byte, protocol-aware, or deterministic local primitive; do not relabel ordinary thread concurrency.
+- Correlate lane ordering and monotonic timing with jobs, events, retries, and final authoritative state.
+- Treat response/timing variance as a lead and require a repeatable invariant violation plus independent X1 validation.
+- Read [race-condition-workflow.md](race-condition-workflow.md) before executing the bounded harness or external race tooling.
 
 ## Output correlation
 

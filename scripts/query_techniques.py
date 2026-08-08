@@ -35,6 +35,8 @@ def score(row: dict[str, Any], query: set[str], mode: str | None, surface: str |
     )
     row_tokens = tokens(fields)
     overlap = len(query & row_tokens)
+    if query and overlap == 0:
+        return -100.0
     value = float(overlap * 10)
     if query and any(" ".join(sorted(query)) in str(row.get("title", "")).lower() for _ in [0]):
         value += 5

@@ -4,10 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
+import threading
+import time
 from copy import deepcopy
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
@@ -20,6 +24,11 @@ from duplicate_check import advisory_matches, compare  # noqa: E402
 from plan_engagement import merged_lanes  # noqa: E402
 from program_profile import checked_hackerone_url, import_bugcrowd, import_hackerone, validate_profile  # noqa: E402
 from query_techniques import score as technique_score, tokens as technique_tokens  # noqa: E402
+from race_condition import (  # noqa: E402
+    build_plan as build_race_plan,
+    execute as execute_race,
+    validate_config as validate_race_config,
+)
 from redact_artifact import PATTERNS  # noqa: E402
 from session_profile import validate_session  # noqa: E402
 from tool_inventory import build_strategy  # noqa: E402
@@ -354,6 +363,152 @@ def main() -> int:
     if "role_and_tenant" not in tool_strategy["correlation_keys"] or tool_strategy["inventory"]["available_count"] < len(installed):
         failures.append("tool strategy does not preserve cross-tool correlation or installed-tool inventory")
 
+    race_tools = {"python", "curl", "burpsuite", "turbo-intruder", "h2spacex"}
+    race_strategy = build_strategy(
+        "black-box",
+        ["api"],
+        ["race condition idempotency TOCTOU"],
+        "single-target",
+        which_func=lambda name: f"/tools/{name}" if name in race_tools else None,
+    )
+    race_stage = next((item for item in race_strategy["stages"] if item["id"] == "race-state-analysis"), None)
+    race_groups = {item["group"] for item in race_stage.get("tool_groups", [])} if race_stage else set()
+    if race_stage is None or "race-delivery" not in race_groups or "race_method" not in race_strategy:
+        failures.append("race focus does not route to dedicated delivery, state-analysis, and method guidance")
+
+    race_plan = build_race_plan(
+        work_mode="local-lab",
+        assessment_mode="hybrid",
+        surface="api",
+        protocol="http2",
+        pattern="state-machine",
+        max_concurrency=2,
+        max_attempts=2,
+    )
+    phase_ids = [item["id"] for item in race_plan["phases"]]
+    delivery_actions = next(item["actions"] for item in race_plan["phases"] if item["id"] == "bounded-synchronization")
+    if phase_ids[:2] != ["model-invariant", "sequential-benchmark"] or not any("single-packet" in item for item in delivery_actions):
+        failures.append("race planner does not require invariant modeling, sequential benchmarking, and HTTP/2 single-packet delivery")
+
+    race_config = json.loads((ROOT / "assets" / "evidence-bundle" / "race-run-config.json").read_text(encoding="utf-8"))
+    race_errors, race_warnings, _race_authorization = validate_race_config(race_config)
+    if race_errors or race_warnings:
+        failures.append(f"local race-run template is not execution-ready: errors={race_errors} warnings={race_warnings}")
+    remote_local_config = deepcopy(race_config)
+    remote_local_config["target"] = "api.example.test"
+    for spec in remote_local_config["reset_requests"] + remote_local_config["requests"] + remote_local_config["state_checks"]:
+        spec["url"] = spec["url"].replace("127.0.0.1:8080", "api.example.test")
+    remote_local_errors, _warnings, _authorization = validate_race_config(remote_local_config)
+    if not any("loopback" in error for error in remote_local_errors):
+        failures.append("local-lab race runner accepts a non-loopback target")
+    secret_race_config = deepcopy(race_config)
+    secret_race_config["requests"][0]["headers"]["Authorization"] = "must-not-be-stored"
+    secret_race_errors, _warnings, _authorization = validate_race_config(secret_race_config)
+    if not any("sensitive header" in error for error in secret_race_errors):
+        failures.append("race runner accepts stored authorization material")
+    unbounded_race_config = deepcopy(race_config)
+    unbounded_race_config["requests"][0]["copies"] = 1000
+    unbounded_race_errors, _warnings, _authorization = validate_race_config(unbounded_race_config)
+    if not any("copies" in error or "hard cap" in error for error in unbounded_race_errors):
+        failures.append("race runner accepts unbounded concurrency")
+    over_limit_race_config = deepcopy(race_config)
+    over_limit_race_config["requests"][0]["copies"] = 3
+    over_limit_race_errors, _warnings, _authorization = validate_race_config(over_limit_race_config)
+    if not any("configured limit" in error for error in over_limit_race_errors):
+        failures.append("race runner exceeds the engagement-configured concurrency limit")
+
+    authorized_race_config = deepcopy(remote_local_config)
+    authorized_race_config["work_mode"] = "active-authorized"
+    authorized_race_config["action_group"] = "authenticated-testing"
+    authorization_fixture_hash = hashlib.sha256(
+        json.dumps(authorization_fixture, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    authorized_race_errors, _warnings, authorized_race_result = validate_race_config(
+        authorized_race_config,
+        authorization_fixture,
+        "2026-08-02T00:00:00Z",
+        authorization_fixture_hash,
+    )
+    if authorized_race_errors or not authorized_race_result or authorized_race_result["status"] != "pass":
+        failures.append(f"bounded race runner rejected a valid target-bound authorization: {authorized_race_errors}")
+    prohibited_race_authorization = deepcopy(authorization_fixture)
+    prohibited_race_authorization["prohibited_actions"].append("race-condition-testing")
+    prohibited_race_authorization_hash = hashlib.sha256(
+        json.dumps(prohibited_race_authorization, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    prohibited_race_errors, _warnings, _authorization = validate_race_config(
+        authorized_race_config,
+        prohibited_race_authorization,
+        "2026-08-02T00:00:00Z",
+        prohibited_race_authorization_hash,
+    )
+    if not any("explicitly prohibits" in error for error in prohibited_race_errors):
+        failures.append("race runner ignores an explicit race-testing prohibition")
+
+    race_state = {"value": 0}
+    race_fixture_control = {"reset_count": 0}
+    race_transition_barrier = threading.Barrier(2)
+
+    class RaceFixtureHandler(BaseHTTPRequestHandler):
+        def log_message(self, _format: str, *args: object) -> None:
+            return
+
+        def do_POST(self) -> None:  # noqa: N802
+            if self.path == "/reset":
+                race_state["value"] = 0
+                race_fixture_control["reset_count"] += 1
+            elif self.path == "/transition":
+                value = race_state["value"]
+                if race_fixture_control["reset_count"] > 2:
+                    race_transition_barrier.wait(timeout=2)
+                else:
+                    time.sleep(0.01)
+                race_state["value"] = value + 1
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ok")
+
+        def do_GET(self) -> None:  # noqa: N802
+            if self.path != "/state":
+                self.send_response(404)
+                self.end_headers()
+                return
+            body = json.dumps(race_state, sort_keys=True).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+
+    race_server = ThreadingHTTPServer(("127.0.0.1", 0), RaceFixtureHandler)
+    race_server_thread = threading.Thread(target=race_server.serve_forever, daemon=True)
+    race_server_thread.start()
+    try:
+        executable_race_config = deepcopy(race_config)
+        fixture_base = f"http://127.0.0.1:{race_server.server_address[1]}"
+        executable_race_config["reset_requests"][0]["url"] = fixture_base + "/reset"
+        executable_race_config["requests"][0]["url"] = fixture_base + "/transition"
+        executable_race_config["state_checks"][0]["url"] = fixture_base + "/state"
+        live_race_errors, live_race_warnings, live_race_authorization = validate_race_config(executable_race_config)
+        live_race_result = execute_race(executable_race_config, live_race_warnings, live_race_authorization)
+        if (
+            live_race_errors
+            or not live_race_result["signals"]["baseline_is_stable"]
+            or not live_race_result["signals"]["concurrent_state_differs_from_baseline"]
+            or any(
+                not run["reset"] or not run["pre_state"] or not run["state_checks"]
+                for run in live_race_result["baseline_runs"] + live_race_result["concurrent_runs"]
+            )
+        ):
+            failures.append("bounded local race runner failed to distinguish stable sequential state from a synchronized lost update")
+    finally:
+        race_server.shutdown()
+        race_server.server_close()
+        race_server_thread.join(timeout=2)
+
     self_review = scenario_record(
         template,
         {
@@ -387,6 +542,22 @@ def main() -> int:
         for row in current_techniques
     ):
         failures.append("current-technique catalog has entries without provenance, routing, or safe validation")
+    race_query = technique_tokens("race condition idempotency TOCTOU")
+    ranked_races = sorted(
+        current_techniques,
+        key=lambda row: -technique_score(row, race_query, "black-box", "api"),
+    )
+    if not ranked_races or ranked_races[0].get("id") != "PS-RACE-STATE-MACHINE":
+        actual = ranked_races[0].get("id") if ranked_races else "none"
+        failures.append(f"race technique routing regression: top={actual}")
+    unrelated_race_score = technique_score(
+        next(row for row in current_techniques if row.get("id") == "PS-2025-01"),
+        race_query,
+        "black-box",
+        "api",
+    )
+    if unrelated_race_score > 0:
+        failures.append("race technique query still promotes unrelated mode/surface-only matches")
 
     database = args.database.resolve() if args.database else ROOT / "references" / "cases" / "case-dataset.sqlite3"
     dataset_count = 0
@@ -613,6 +784,7 @@ def main() -> int:
         "assessment_scenarios": 8,
         "dynamic_profile_scenarios": 11,
         "current_technique_count": len(current_techniques),
+        "race_workflow_scenarios": 12,
         "database_integrity": "ok" if database.is_file() and not any("SQLite integrity" in item for item in failures) else "failed-or-missing",
         "advisory_database_integrity": "ok" if advisory_database.is_file() and not any("advisory SQLite integrity" in item for item in failures) else "failed-or-missing",
         "failures": failures,

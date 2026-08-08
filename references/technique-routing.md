@@ -30,6 +30,7 @@ Modern signals without a dedicated inherited file still route cleanly:
 | CI/CD identities, artifact provenance, deployment mapping | Supply-chain directory and white-box source map |
 | Exceptional conditions, partial failure, rollback | Business-logic directory plus `OWASP-2025-A10` |
 | RCE, SQLi, XSS, SSRF, auth bypass, deserialization, races, Web3 | Read the matching route in [vulnerability-playbooks.md](vulnerability-playbooks.md), then select target-specific tools with [research-operations.md](research-operations.md) |
+| Race conditions, TOCTOU, idempotency, atomicity, double-spend | Read [race-condition-workflow.md](race-condition-workflow.md), run `race plan`, then open only the relevant part of `techniques/08-business-logic-race-operations/race_conditions.md` |
 
 For white-box or hybrid work, start from entry points, authorization middleware, serializers, parsers, canonicalizers, cache keys, job consumers, integration clients, and security-sensitive sinks. Search sibling call sites by the required fix invariant. Use runtime behavior to prioritize source paths and local regression tests to falsify the hypothesis.
 

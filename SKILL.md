@@ -1,6 +1,6 @@
 ---
 name: mask0ff
-description: Tool-led, evidence-first authorized vulnerability research for bug bounty and penetration testing across web/API, source, browser/client, cloud/infrastructure, developer tools, AI agents, business logic, and Web3. Use when Codex must import program scope; work with researcher-supplied authenticated access; perform large-scale reconnaissance, endpoint discovery, fuzzing, source/dependency analysis, or automated enumeration; research prior vulnerability methods and unfamiliar technology; generate zero-day hypotheses from trust, permission, state, parser, and feature interactions; independently validate a candidate; check duplicates; or produce a submission-ready report in black-, gray-, white-, or hybrid-box mode.
+description: Tool-led, evidence-first authorized vulnerability research for bug bounty and penetration testing across web/API, source, browser/client, cloud/infrastructure, developer tools, AI agents, business logic, and Web3. Use when Codex must import program scope; work with researcher-supplied authenticated access; perform large-scale reconnaissance, endpoint discovery, fuzzing, race-condition or TOCTOU state analysis, source/dependency analysis, or automated enumeration; research prior vulnerability methods and unfamiliar technology; generate zero-day hypotheses from trust, permission, state, parser, and feature interactions; independently validate a candidate; check duplicates; or produce a submission-ready report in black-, gray-, white-, or hybrid-box mode.
 ---
 
 # mask0ff
@@ -164,6 +164,8 @@ Read [current-techniques.md](references/current-techniques.md) when choosing mod
 Use the redacted real-case library under `references/cases/` for methodological analogies. Do not assume a target is vulnerable because it resembles a prior case. Rebuild the proof from current evidence.
 
 For RCE, SQLi, XSS, SSRF, authentication bypass, business logic, race conditions, deserialization, and Web3, read only the matching section of [vulnerability-playbooks.md](references/vulnerability-playbooks.md). Use its questions, tool routes, controls, and variant rules; do not copy bulk payloads.
+
+For race-condition, TOCTOU, double-spend, idempotency, partial-construction, or concurrency hypotheses, read [race-condition-workflow.md](references/race-condition-workflow.md) and run `race plan` before active execution. Require a stable sequential baseline, explicit reset procedure, protocol-correct delivery, bounded attempts, asynchronous-settlement handling, and authoritative final-state evidence. The bundled `race run` command is a low-volume HTTP/1.x thread-barrier harness, not single-packet or last-byte synchronization. Treat timing and response differences as clues only; require a repeatable state-invariant violation and independent X1 reproduction.
 
 ## Orchestrate specialized agents only when requested
 

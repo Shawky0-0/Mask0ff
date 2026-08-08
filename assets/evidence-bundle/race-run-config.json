@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-race-run-config",
+  "work_mode": "local-lab",
+  "target": "127.0.0.1",
+  "delivery": "barrier-http1",
+  "configured_concurrency_limit": 2,
+  "baseline_runs": 2,
+  "attempts": 2,
+  "timeout_seconds": 5,
+  "reset_requests": [
+    {
+      "id": "reset-owned-state",
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/owned-test-object/reset",
+      "headers": {},
+      "header_env": {},
+      "body": "",
+      "expected_statuses": [200]
+    }
+  ],
+  "requests": [
+    {
+      "id": "synthetic-transition",
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/owned-test-object/transition",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "header_env": {},
+      "body": "{\"object\":\"owned-test-object\",\"action\":\"transition\"}",
+      "copies": 2,
+      "expected_statuses": [200]
+    }
+  ],
+  "state_checks": [
+    {
+      "id": "authoritative-state",
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/owned-test-object/state",
+      "headers": {},
+      "header_env": {},
+      "body": "",
+      "expected_statuses": [200]
+    }
+  ]
+}

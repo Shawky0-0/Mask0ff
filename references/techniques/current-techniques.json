@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "reviewed_at_utc": "2026-08-02T00:00:00Z",
+  "reviewed_at_utc": "2026-08-08T00:00:00Z",
   "purpose": "Current, provenance-rich hypothesis routing. Entries are not proof and contain no spray payloads.",
   "sources": [
     {
@@ -44,6 +44,27 @@
       "url": "https://marketing-assets.hackerone-user-content.com/HackerOne_H1P_Methodology_V2.pdf",
       "published": "2026",
       "source_type": "official-pentest-methodology"
+    },
+    {
+      "id": "portswigger-web-races",
+      "title": "Race conditions and Smashing the State Machine",
+      "url": "https://portswigger.net/web-security/race-conditions",
+      "published": "living",
+      "source_type": "primary-research-and-training"
+    },
+    {
+      "id": "cwe-362",
+      "title": "CWE-362 Concurrent Execution using Shared Resource with Improper Synchronization",
+      "url": "https://cwe.mitre.org/data/definitions/362.html",
+      "published": "living",
+      "source_type": "official-weakness-taxonomy"
+    },
+    {
+      "id": "cwe-367",
+      "title": "CWE-367 Time-of-check Time-of-use Race Condition",
+      "url": "https://cwe.mitre.org/data/definitions/367.html",
+      "published": "living",
+      "source_type": "official-weakness-taxonomy"
     }
   ],
   "techniques": [
@@ -290,6 +311,42 @@
       "surfaces": ["ai-agent", "api", "source"],
       "signals": ["agent", "tool", "prompt injection", "memory", "approval", "autonomy"],
       "safe_validation": "Use synthetic tools, canary secrets, owned data, explicit approval controls, and a local sandbox; never let untrusted content expand authority."
+    },
+    {
+      "id": "PS-RACE-STATE-MACHINE",
+      "title": "Hidden state-machine and partial-construction race conditions",
+      "source": "portswigger-web-races",
+      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
+      "surfaces": ["web", "api", "graphql", "websocket", "source"],
+      "signals": ["race", "race condition", "concurrency", "hidden sub-state", "partial construction", "idempotency", "state machine", "limit overrun", "asynchronous job"],
+      "safe_validation": "Model one owned-data invariant, run stable sequential baselines, use bounded protocol-correct synchronization, wait for asynchronous settlement, and compare authoritative final state."
+    },
+    {
+      "id": "PS-RACE-SINGLE-PACKET",
+      "title": "HTTP/2 single-packet and HTTP/1.1 last-byte race delivery",
+      "source": "portswigger-web-races",
+      "modes": ["black-box", "gray-box", "hybrid"],
+      "surfaces": ["web", "api", "graphql"],
+      "signals": ["race", "single packet", "single-packet", "http2", "last byte", "last-byte", "network jitter", "multi-endpoint"],
+      "safe_validation": "Fingerprint the negotiated protocol, begin with two owned-data lanes, preserve delivery limitations, and stop at the smallest repeatable authoritative-state violation."
+    },
+    {
+      "id": "CWE-362-SHARED-STATE",
+      "title": "Improper synchronization of security-sensitive shared state",
+      "source": "cwe-362",
+      "modes": ["gray-box", "white-box", "hybrid"],
+      "surfaces": ["source", "api", "web"],
+      "signals": ["race", "concurrent", "concurrency", "shared resource", "atomicity", "lock", "transaction", "double spend", "counter"],
+      "safe_validation": "Use an owned local regression with a deterministic barrier or scheduler, fixed seed, clean datastore, authoritative state assertion, and patched synchronization differential."
+    },
+    {
+      "id": "CWE-367-TOCTOU",
+      "title": "Time-of-check time-of-use security decision gap",
+      "source": "cwe-367",
+      "modes": ["gray-box", "white-box", "hybrid"],
+      "surfaces": ["source", "api", "web"],
+      "signals": ["toctou", "time-of-check", "time of check", "check then use", "stale authorization", "file replacement", "state change"],
+      "safe_validation": "Insert a deterministic local barrier between the check and use, alter only researcher-owned state, verify the crossed invariant, and confirm the atomic or revalidated fix."
     },
     {
       "id": "H1P-2026-COVERAGE",

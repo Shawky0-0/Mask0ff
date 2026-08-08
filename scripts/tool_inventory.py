@@ -62,6 +62,14 @@ TOOL_GROUPS: dict[str, dict[str, Any]] = {
         "binaries": ["strace", "ltrace", "tcpdump", "docker", "podman", "gdb", "rr"],
         "interaction": "local-lab",
     },
+    "race-delivery": {
+        "purpose": "Deliver bounded synchronized request groups and correlate them with authoritative state.",
+        "binaries": [
+            "burpsuite", "BurpSuiteCommunity", "turbo-intruder", "raceocat", "h2spacex",
+            "python3", "python", "go", "curl",
+        ],
+        "interaction": "local-lab-or-explicitly-authorized-bounded",
+    },
     "cloud-and-infrastructure": {
         "purpose": "Map identities, configuration, deployment boundaries, and cloud-native resources.",
         "binaries": ["aws", "az", "gcloud", "kubectl", "helm", "terraform", "trivy", "nmap"],
@@ -107,6 +115,16 @@ STAGES: list[dict[str, Any]] = [
         "output": ["request_id", "mutation", "baseline_signature", "response_signature", "delta", "tool_version"],
     },
     {
+        "id": "race-state-analysis",
+        "groups": ["race-delivery", "api-protocols", "runtime-lab"],
+        "purpose": "Model one state invariant, benchmark sequential behavior, select a protocol-correct synchronization primitive, and compare bounded attempts with authoritative final state.",
+        "output": [
+            "transition_id", "attempt_id", "lane_id", "actor", "object", "state_before_hash",
+            "delivery_primitive", "negotiated_protocol", "monotonic_timing", "response_signature",
+            "downstream_event", "state_after_hash", "invariant_result", "reset_evidence",
+        ],
+    },
+    {
         "id": "source-and-dependency-analysis",
         "groups": ["source-analysis"],
         "purpose": "Trace reachable sources, transformations, guards, sinks, sibling call sites, versions, and fix invariants.",
@@ -137,6 +155,10 @@ WEB_SURFACES = {"web", "api", "graphql", "websocket", "mobile", "desktop", "brow
 INFRA_SURFACES = {"cloud", "infrastructure", "kubernetes", "serverless", "ci-cd"}
 WEB3_SURFACES = {"web3", "evm", "solana"}
 FUZZ_FOCUS = {"rce", "remote code execution", "sql injection", "sqli", "xss", "ssrf", "deserialization", "race", "fuzz"}
+RACE_FOCUS = {
+    "race", "race condition", "toctou", "time-of-check", "time of check", "double spend",
+    "double-spend", "idempotency", "concurrent", "concurrency", "atomicity", "limit overrun",
+}
 
 
 def inventory(which_func: Callable[[str], str | None] = shutil.which) -> dict[str, Any]:
@@ -172,6 +194,8 @@ def relevant_stage_ids(assessment_mode: str, surfaces: list[str], focuses: list[
         selected.add("endpoint-and-client-map")
     if any(token in focus_text for token in FUZZ_FOCUS) or surface_set & WEB_SURFACES:
         selected.add("focused-fuzzing")
+    if any(token in focus_text for token in RACE_FOCUS):
+        selected.add("race-state-analysis")
     if assessment_mode in {"white-box", "hybrid"} or "source" in surface_set:
         selected.update({"source-and-dependency-analysis", "runtime-local-proof"})
     if surface_set & INFRA_SURFACES:
@@ -208,7 +232,7 @@ def build_strategy(
                 }
             )
         stages.append({**stage, "tool_groups": tool_groups})
-    return {
+    strategy = {
         "schema_version": 1,
         "assessment_mode": assessment_mode,
         "surfaces": surfaces,
@@ -241,6 +265,23 @@ def build_strategy(
             "Correlate independent sources before prioritizing; never let one noisy tool define the target model.",
         ],
     }
+    if "race-state-analysis" in selected_ids:
+        strategy["race_method"] = {
+            "sequence": [
+                "name the actor/object/state invariant and reset procedure",
+                "run two clean sequential baselines",
+                "fingerprint the negotiated protocol and session-lock behavior",
+                "select HTTP/2 single-packet, HTTP/1.1 last-byte, protocol-aware, or deterministic local delivery",
+                "run bounded synchronized attempts while preserving lane ordering and monotonic timing",
+                "wait for asynchronous completion and query authoritative final state",
+                "run retry, session, idempotency, jitter, and eventual-consistency controls",
+                "repeat from clean state and hand a blind packet to independent X1 validation",
+            ],
+            "built_in_runner": "mask0ff race run",
+            "runner_limitations": "The built-in barrier-http1 runner is preliminary evidence only; it is not wire-level single-packet or last-byte synchronization.",
+            "verdict_rule": "Response or timing variation is a lead; require a repeatable authoritative-state invariant violation.",
+        }
+    return strategy
 
 
 def build_parser() -> argparse.ArgumentParser:

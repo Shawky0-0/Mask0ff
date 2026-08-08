@@ -7,10 +7,11 @@ Query it before opening long files:
 ```powershell
 .\scripts\mask0ff.cmd techniques "unicode identifier normalization" --mode white-box --surface source
 .\scripts\mask0ff.cmd techniques "cross-tenant object" --mode black-box --surface api
+.\scripts\mask0ff.cmd techniques "race condition idempotency TOCTOU" --mode black-box --surface api
 .\scripts\mask0ff.cmd techniques --sources
 ```
 
-Recent research lanes include parser differentials, successful-error injection/SSTI, ORM relationship leakage, side channels, internal cache poisoning, Unicode normalization, redirect-loop SSRF visibility, and HTTP/2 CONNECT interpretation boundaries. Use them only when target signals justify them.
+Recent research lanes include parser differentials, successful-error injection/SSTI, ORM relationship leakage, side channels, internal cache poisoning, Unicode normalization, redirect-loop SSRF visibility, HTTP/2 CONNECT interpretation boundaries, hidden state-machine races, protocol-correct race delivery, shared-state synchronization, and TOCTOU analysis. Use them only when target signals justify them.
 
 Also route through OWASP Top 10:2025, the current WSTG, OWASP API Security Top 10 2023, the OWASP Agentic Applications risk model, and HackerOne's current H1P methodology for objective-led penetration-test coverage. Living sources may change after the recorded review time, so check the current primary source during a real engagement and preserve the access date.
 
