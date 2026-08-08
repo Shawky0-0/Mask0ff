@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-engagement-profile",
+  "platform": "generic",
+  "program_or_owner": "",
+  "policy_reference": "",
+  "captured_at_utc": "",
+  "assessment_mode": "black-box",
+  "work_mode": "active-authorized",
+  "authorization_model": "platform-program",
+  "scope": [],
+  "out_of_scope": [],
+  "allowed_action_groups": [
+    "passive-recon",
+    "standard-safe-testing",
+    "authenticated-testing",
+    "source-review",
+    "local-reproduction"
+  ],
+  "prohibited_actions": [
+    "denial-of-service",
+    "credential-attacks",
+    "social-engineering",
+    "persistence",
+    "third-party-data-access",
+    "destructive-production-actions",
+    "bulk-extraction",
+    "stealth-or-log-removal"
+  ],
+  "rate_limits": [],
+  "testing_windows": [],
+  "data_handling_rules": [],
+  "owned_accounts_and_data": [],
+  "source": {},
+  "notes": ""
+}

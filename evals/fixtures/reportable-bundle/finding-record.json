@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "title": "Deterministic reportable assessment fixture",
+  "work_mode": "local-lab",
+  "authorization": {
+    "authority": "researcher-owned local lab",
+    "program_or_owner": "fixture owner",
+    "policy_reference": "local-fixture",
+    "in_scope": ["fixture"],
+    "out_of_scope": [],
+    "owned_accounts_and_data": ["all fixture data"],
+    "constraints": [],
+    "receipt_evidence_id": "",
+    "validation_evidence_id": "",
+    "target": "fixture",
+    "action": "local-validation",
+    "status": "pass"
+  },
+  "fingerprint": {
+    "product": "mask0ff",
+    "component": "assessment fixture",
+    "entry_point": "local command",
+    "controlled_input": "synthetic fixture",
+    "source_sink": "finding record to assessment output",
+    "preconditions": ["owned local lab"],
+    "boundary": "record assertion to verified evidence",
+    "primitive": "deterministic validation",
+    "impact": "unsupported state is rejected",
+    "affected_versions": "v3.1 fixture",
+    "fix_invariant": "claims remain bound to valid evidence"
+  },
+  "gates": {
+    "A0": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "A1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "H1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "B1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "P1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "C1": {"status": "pass", "evidence": ["E-002"], "reason": ""},
+    "R1": {"status": "pass", "evidence": ["E-001", "E-002"], "reason": ""},
+    "I1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
+    "S1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
+    "V1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
+    "F1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
+    "D1": {"status": "pass", "evidence": ["E-002"], "reason": ""},
+    "Q1": {"status": "pass", "evidence": ["E-001", "E-002"], "reason": ""}
+  },
+  "evidence": [
+    {
+      "id": "E-001",
+      "kind": "local-lab-ownership",
+      "path": "artifacts/E-001.txt",
+      "sha256": "d10858f72b6815c26a612149fe8e29e1d35c675fc92df71543658a17673a42b5",
+      "size_bytes": 57,
+      "captured_at_utc": "2026-08-02T15:00:00Z",
+      "observation": "Owned baseline and proof fixture.",
+      "redacted": false
+    },
+    {
+      "id": "E-002",
+      "kind": "differential-control",
+      "path": "artifacts/E-002.txt",
+      "sha256": "9952c6fb458dec99856efd4c0f140304324481cb8114355cd51163c86a67571d",
+      "size_bytes": 46,
+      "captured_at_utc": "2026-08-02T15:01:00Z",
+      "observation": "Independent control and repeat fixture.",
+      "redacted": false
+    }
+  ],
+  "runs": [
+    {"id": "run-1", "evidence": ["E-001"]},
+    {"id": "run-2", "evidence": ["E-002"]}
+  ],
+  "claims": [
+    {"statement": "The local proof artifact is intact.", "basis": "observed", "evidence": ["E-001"]},
+    {"statement": "The independent control artifact is intact.", "basis": "observed", "evidence": ["E-002"]}
+  ],
+  "severity": {
+    "rating": "",
+    "cvss_version": "",
+    "vector": "",
+    "score": null,
+    "rationale": "",
+    "evidence": []
+  },
+  "safe_stopping_point": "Fixture assessment complete.",
+  "open_questions": []
+}

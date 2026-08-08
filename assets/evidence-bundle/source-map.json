@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "repository": "",
+  "revision": "",
+  "dirty_worktree": null,
+  "build_command": "",
+  "test_command": "",
+  "deployment_mapping": {
+    "target": "",
+    "deployed_version_or_commit": "",
+    "evidence": []
+  },
+  "entry_points": [],
+  "identities_and_roles": [],
+  "authorization_checks": [],
+  "controlled_sources": [],
+  "security_sensitive_sinks": [],
+  "data_flows": [],
+  "variant_queries": [],
+  "local_regressions": [],
+  "fix_invariant": "",
+  "open_mapping_questions": []
+}

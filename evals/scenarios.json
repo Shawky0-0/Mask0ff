@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "scenarios": [
+    {
+      "id": "scope-unclear-blocks-active-work",
+      "work_mode": "unclear",
+      "pass": [],
+      "not_applicable": [],
+      "expected_state": "blocked",
+      "expected_errors": 0
+    },
+    {
+      "id": "authorized-hypothesis-is-candidate",
+      "work_mode": "active-authorized",
+      "pass": ["A0", "A1", "H1"],
+      "not_applicable": [],
+      "expected_state": "candidate",
+      "expected_errors": 0
+    },
+    {
+      "id": "single-proof-without-controls-is-candidate",
+      "work_mode": "local-lab",
+      "pass": ["A0", "A1", "H1", "B1", "P1"],
+      "not_applicable": [],
+      "expected_state": "candidate",
+      "expected_errors": 0
+    },
+    {
+      "id": "controls-without-repeat-is-substantiated",
+      "work_mode": "local-lab",
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1"],
+      "not_applicable": [],
+      "expected_state": "substantiated",
+      "expected_errors": 0
+    },
+    {
+      "id": "core-proof-is-verified-not-reportable",
+      "work_mode": "active-authorized",
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1"],
+      "not_applicable": ["S1", "V1", "F1"],
+      "expected_state": "verified",
+      "expected_errors": 0
+    },
+    {
+      "id": "all-report-gates-pass",
+      "work_mode": "active-authorized",
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1", "S1", "V1", "F1", "D1", "Q1"],
+      "not_applicable": [],
+      "expected_state": "reportable",
+      "expected_errors": 0
+    },
+    {
+      "id": "blackbox-applicability-reasons-are-accepted",
+      "work_mode": "active-authorized",
+      "pass": ["A0", "A1", "H1", "B1", "P1", "C1", "R1", "I1", "D1", "Q1"],
+      "not_applicable": ["S1", "V1", "F1"],
+      "expected_state": "reportable",
+      "expected_errors": 0
+    },
+    {
+      "id": "passing-gate-without-evidence-is-invalid",
+      "work_mode": "local-lab",
+      "pass": ["A0"],
+      "clear_evidence_for": ["A0"],
+      "not_applicable": [],
+      "expected_state": "candidate",
+      "expected_errors": 2
+    },
+    {
+      "id": "not-applicable-without-reason-is-invalid",
+      "work_mode": "passive",
+      "pass": ["A0"],
+      "not_applicable": ["V1"],
+      "clear_reason_for": ["V1"],
+      "expected_state": "candidate",
+      "expected_errors": 1
+    },
+    {
+      "id": "unknown-evidence-reference-is-invalid",
+      "work_mode": "local-lab",
+      "pass": ["A0"],
+      "unknown_evidence_for": ["A0"],
+      "not_applicable": [],
+      "expected_state": "candidate",
+      "expected_errors": 2
+    }
+  ]
+}

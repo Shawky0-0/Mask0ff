@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "assessment_mode": "black-box",
+  "surfaces": [],
+  "roles_and_tenants": [],
+  "objects_and_ownership_states": [],
+  "business_flows": [],
+  "trust_boundaries": [],
+  "planned_lanes": [],
+  "completed_controls": [],
+  "refuted_hypotheses": [],
+  "open_signals": [],
+  "deferred_items": [],
+  "coverage_caveat": "Coverage records what was examined; it never proves absence of vulnerabilities."
+}

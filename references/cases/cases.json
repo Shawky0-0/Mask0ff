@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "privacy": "Redacted methodological case patterns derived from researcher-controlled work. They omit private program text, credentials, and third-party data.",
+  "cases": [
+    {
+      "id": "MASK-CASE-001",
+      "title": "Incomplete option-terminator fix leaves a repository command path injectable",
+      "walkthrough": "references/cases/MASK-CASE-001-option-terminator.md",
+      "fingerprint": {
+        "component": "version-control repository adapter and post-update add-on",
+        "entry_point": "project-scoped template configuration reaches repository file read",
+        "controlled_input": "option-shaped repository filename",
+        "source_sink": "configured path enters command argument vector before option terminator",
+        "preconditions": ["authenticated project editor", "specific repository type", "compatible post-update workflow"],
+        "boundary": "application permission crosses into operating-system command dispatch as service account",
+        "primitive": "argument injection changes command configuration and command dispatch",
+        "impact": "controlled command execution as application service identity",
+        "fix_invariant": "place repository-derived filenames after an explicit option terminator and test adjacent callers"
+      }
+    },
+    {
+      "id": "MASK-CASE-002",
+      "title": "Unverified self-service identity change captures a later private invitation",
+      "walkthrough": "references/cases/MASK-CASE-002-identity-binding.md",
+      "fingerprint": {
+        "component": "user profile API and team invitation resolver",
+        "entry_point": "ordinary user updates primary email before administrator invitation",
+        "controlled_input": "unverified email identity",
+        "source_sink": "writable profile identity is trusted when binding an invitation to a user id",
+        "preconditions": ["ordinary authenticated account", "selected address not already registered", "later administrator invitation"],
+        "boundary": "unverified mailbox claim becomes private-project authorization",
+        "primitive": "identity pre-claim and invitation binding confusion",
+        "impact": "unauthorized membership and project permissions without mailbox control",
+        "fix_invariant": "resolve invitations only through verified email identities and require verification for primary-email changes"
+      }
+    },
+    {
+      "id": "MASK-CASE-003",
+      "title": "Untrusted secondary workspace definitions execute through ungated extension paths",
+      "walkthrough": "references/cases/MASK-CASE-003-secondary-workspace-trust.md",
+      "fingerprint": {
+        "component": "developer-agent extension loader and workspace trust system",
+        "entry_point": "agent or skill definition loaded from an additional working directory",
+        "controlled_input": "execution-bearing frontmatter in an untrusted secondary folder",
+        "source_sink": "trusted content discovery path reaches process and hook registration without origin trust check",
+        "preconditions": ["trusted primary workspace", "attacker-controlled secondary repository added for context", "definition invoked"],
+        "boundary": "read-only contextual folder gains local process execution authority",
+        "primitive": "permission-prompt and workspace-trust bypass",
+        "impact": "command execution as the developer-tool user",
+        "fix_invariant": "bind every execution-bearing definition to its canonical source-folder trust decision"
+      }
+    },
+    {
+      "id": "MASK-CASE-004",
+      "title": "Approval UI hides consequential fields while attachment handling bypasses file policy",
+      "walkthrough": "references/cases/MASK-CASE-004-hidden-approval-effects.md",
+      "fingerprint": {
+        "component": "agent tool approval renderer and connector attachment uploader",
+        "entry_point": "consequential email action containing recipients and local attachments",
+        "controlled_input": "security-sensitive tool arguments after the visible display limit",
+        "source_sink": "complete argument object survives truncated approval and unsandboxed file read reaches upload",
+        "preconditions": ["connected email account", "user approves displayed action", "attacker-influenced document or workflow"],
+        "boundary": "user consent and filesystem read-deny policy differ from executed connector effects",
+        "primitive": "approval misrepresentation plus local file policy bypass",
+        "impact": "undisclosed recipient receives an undisclosed local attachment",
+        "fix_invariant": "display every consequential argument and enforce the active file policy before metadata or content reads"
+      }
+    }
+  ]
+}

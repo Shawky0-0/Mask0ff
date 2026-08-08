@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "authority": "",
+  "program_or_owner": "",
+  "policy_reference": "",
+  "valid_from": "",
+  "valid_until": "",
+  "in_scope_targets": [],
+  "out_of_scope_targets": [],
+  "allowed_actions": [
+    "standard-safe-testing"
+  ],
+  "allowed_action_groups": [
+    "passive-recon",
+    "standard-safe-testing",
+    "authenticated-testing",
+    "source-review",
+    "local-reproduction"
+  ],
+  "prohibited_actions": [
+    "denial-of-service",
+    "credential-attacks",
+    "social-engineering",
+    "persistence",
+    "third-party-data-access",
+    "destructive-production-actions"
+  ],
+  "rate_limits": [],
+  "owned_accounts_and_data": [],
+  "evidence": [],
+  "notes": "This receipt records supplied authorization context; it does not independently prove legal authority. Using researcher-supplied credentials for ordinary authenticated testing is not a credential attack."
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "title": "",
+  "work_mode": "unclear",
+  "assessment_mode": "black-box",
+  "engagement": {
+    "platform": "",
+    "program_or_owner": "",
+    "policy_reference": "",
+    "profile_evidence_id": "",
+    "profile_sha256": ""
+  },
+  "access": {
+    "session_profiles": [],
+    "secret_material_stored": false
+  },
+  "authorization": {
+    "authority": "",
+    "program_or_owner": "",
+    "policy_reference": "",
+    "in_scope": [],
+    "out_of_scope": [],
+    "owned_accounts_and_data": [],
+    "constraints": [],
+    "receipt_evidence_id": "",
+    "validation_evidence_id": "",
+    "target": "",
+    "action": "",
+    "action_group": "",
+    "status": "pending"
+  },
+  "fingerprint": {
+    "product": "",
+    "component": "",
+    "entry_point": "",
+    "controlled_input": "",
+    "source_sink": "",
+    "preconditions": [],
+    "boundary": "",
+    "primitive": "",
+    "impact": "",
+    "affected_versions": "",
+    "fix_invariant": ""
+  },
+  "gates": {
+    "A0": {"status": "pending", "evidence": [], "reason": ""},
+    "A1": {"status": "pending", "evidence": [], "reason": ""},
+    "H1": {"status": "pending", "evidence": [], "reason": ""},
+    "B1": {"status": "pending", "evidence": [], "reason": ""},
+    "P1": {"status": "pending", "evidence": [], "reason": ""},
+    "C1": {"status": "pending", "evidence": [], "reason": ""},
+    "R1": {"status": "pending", "evidence": [], "reason": ""},
+    "I1": {"status": "pending", "evidence": [], "reason": ""},
+    "S1": {"status": "pending", "evidence": [], "reason": ""},
+    "V1": {"status": "pending", "evidence": [], "reason": ""},
+    "F1": {"status": "pending", "evidence": [], "reason": ""},
+    "D1": {"status": "pending", "evidence": [], "reason": ""},
+    "Q1": {"status": "pending", "evidence": [], "reason": ""}
+  },
+  "evidence": [],
+  "runs": [],
+  "claims": [],
+  "severity": {
+    "rating": "",
+    "cvss_version": "",
+    "vector": "",
+    "score": null,
+    "rationale": "",
+    "evidence": []
+  },
+  "safe_stopping_point": "",
+  "open_questions": []
+}
