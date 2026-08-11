@@ -15,3 +15,12 @@ sh .opencode/skills/mask0ff/scripts/mask0ff.sh opencode <extracted-package-root>
 ```
 
 The validator checks native discovery paths, skill identity, agent mode and permissions, the official schema URL, and cache-file cleanliness. It does not validate a target engagement; run `profile verify`, `auth`, and the evidence gates separately.
+
+From a validated development checkout, `sync-skill.sh` can deploy the skill, primary-agent adapter, and required permission configuration to OpenCode's global discovery paths:
+
+```text
+sh sync-skill.sh
+sh sync-skill.sh --verify-only
+```
+
+The deployment re-runs integrity, corpus audit, and dataset-required evaluations; validates a staged native OpenCode layout; preserves unrelated JSON configuration; creates a timestamped backup under `~/.config/opencode-backups/`; and restores the previous installation if post-install validation fails. Run it only from the intended development checkout, never from an extracted target artifact or engagement workspace.

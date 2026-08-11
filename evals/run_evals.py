@@ -31,8 +31,17 @@ from race_condition import (  # noqa: E402
 )
 from redact_artifact import PATTERNS  # noqa: E402
 from session_profile import validate_session  # noqa: E402
+from security_graph import validate_graph as validate_security_graph  # noqa: E402
 from tool_inventory import build_strategy  # noqa: E402
+from triage_report import (  # noqa: E402
+    program_threat_model_check,
+    report_analysis,
+    severity_check as triage_severity_check,
+    verdict as triage_verdict,
+)
+from triage_review import MANDATORY_REJECTION_TESTS, validate_triage  # noqa: E402
 from verify_finding import calculate_effective_state, calculate_state, validate  # noqa: E402
+from weird_surface import evidence_confidence as weird_evidence_confidence  # noqa: E402
 
 
 def scenario_record(template: dict, scenario: dict) -> dict:
@@ -58,8 +67,60 @@ def scenario_record(template: dict, scenario: dict) -> dict:
         "boundary": "eval boundary",
         "primitive": "eval primitive",
         "impact": "eval impact",
-        "affected_versions": "eval",
+        "affected_versions": "eval-current",
         "fix_invariant": "eval fix"
+    }
+    record["threat_model"] = {
+        "attacker_actor": "external eval attacker",
+        "victim_actor": "eval victim",
+        "attacker_principal": "low-authority-eval-principal",
+        "victim_principal": "higher-authority-eval-service",
+        "attacker_controls": ["synthetic eval input"],
+        "attacker_control_evidence": ["E-001"],
+        "attacker_does_not_control": ["victim service policy"],
+        "required_victim_actions": ["process attacker input"],
+        "required_admin_actions": [],
+        "trust_principals": ["low-authority-eval-principal", "higher-authority-eval-service"],
+        "trust_model_evidence": ["E-001"],
+        "security_contract": {
+            "statement": "Low-authority eval input must not gain the protected eval capability.",
+            "basis": "documented",
+            "evidence": ["E-001"],
+        },
+        "consent_analysis": {
+            "explicit_authorization_required": False,
+            "explicit_authorization_present": False,
+            "authorized_actor": "",
+            "outcome": "not-applicable",
+            "evidence": [],
+        },
+        "authority_delta": {
+            "before": ["submit eval input"],
+            "after": ["submit eval input", "invoke protected eval capability"],
+            "gained": ["invoke protected eval capability"],
+            "equivalent_authority_already_held": False,
+            "protected_property": "eval authorization boundary",
+            "boundary_crossed": True,
+            "evidence": ["E-001"],
+        },
+    }
+    record["freshness"] = {
+        "checked_at_utc": "2026-08-10T00:00:00Z",
+        "tested_version_or_revision": "eval-current",
+        "current_supported_version_or_revision": "eval-current",
+        "status": "vulnerable",
+        "submission_relevance": "current-vulnerable",
+        "evidence": ["E-001"],
+    }
+    record["impact_model"] = {
+        "demonstrated_effects": ["protected eval capability reached"],
+        "bounded_inferences": [],
+        "attacker_gain": ["invoke protected eval capability"],
+        "victim_loss": ["authorization boundary"],
+        "preconditions": ["synthetic eval precondition"],
+        "blast_radius": "single synthetic eval object",
+        "counterfactual_if_fixed": "attacker cannot invoke the protected eval capability",
+        "evidence": ["E-001"],
     }
     for gate in scenario.get("pass", []):
         record["gates"][gate] = {"status": "pass", "evidence": ["E-001"], "reason": ""}
@@ -93,6 +154,20 @@ def scenario_record(template: dict, scenario: dict) -> dict:
             "review_evidence_id": "E-003",
             "reproduction_evidence": ["E-004"],
             "verdict": "confirmed",
+        }
+    if "J1" in scenario.get("pass", []):
+        record["evidence"].append(
+            {"id": "E-006", "kind": "triage-review", "path": "none-6", "sha256": "", "observation": "synthetic adversarial triage review"}
+        )
+        record["gates"]["J1"] = {"status": "pass", "evidence": ["E-006"], "reason": ""}
+        record["classification"] = {"status": "security-vulnerability", "reason": "synthetic eval", "evidence": ["E-001", "E-006"]}
+        record["triage"] = {
+            "status": "pass",
+            "discovery_owner": "discovery-eval",
+            "reviewer_owner": "triager-eval",
+            "review_evidence_id": "E-006",
+            "verdict": "survives",
+            "classification": "security-vulnerability",
         }
     for gate in scenario.get("not_applicable", []):
         record["gates"][gate] = {"status": "not_applicable", "evidence": [], "reason": "eval reason"}
@@ -134,6 +209,200 @@ def main() -> int:
         failures.append(f"exact duplicate analogy score is {exact_score}, expected 1.0")
     if unrelated_score >= 0.2:
         failures.append(f"unrelated analogy score is {unrelated_score}, expected below 0.2")
+
+    consent_record = scenario_record(
+        template,
+        {"id": "consent-regression", "work_mode": "local-lab", "pass": ["A0", "T1"], "not_applicable": []},
+    )
+    consent_record["threat_model"]["consent_analysis"] = {
+        "explicit_authorization_required": True,
+        "explicit_authorization_present": True,
+        "authorized_actor": "administrator",
+        "outcome": "not-authorized-by-consent",
+        "evidence": ["E-001"],
+    }
+    consent_errors, _ = validate(consent_record)
+    if not any("explicitly authorized" in error for error in consent_errors):
+        failures.append("T1 regression accepts explicitly authorized behavior as an attacker bypass")
+
+    same_authority_record = scenario_record(
+        template,
+        {"id": "same-authority-regression", "work_mode": "local-lab", "pass": ["A0", "E1"], "not_applicable": []},
+    )
+    same_authority_record["threat_model"]["authority_delta"]["equivalent_authority_already_held"] = True
+    same_authority_errors, _ = validate(same_authority_record)
+    if not any("did not already hold equivalent authority" in error for error in same_authority_errors):
+        failures.append("E1 regression accepts equivalent pre-existing authority as escalation")
+
+    stale_record = scenario_record(
+        template,
+        {"id": "stale-version-regression", "work_mode": "local-lab", "pass": ["A0", "V1"], "not_applicable": []},
+    )
+    stale_record["freshness"]["status"] = "safe"
+    stale_record["freshness"]["submission_relevance"] = "historical-only"
+    stale_errors, _ = validate(stale_record)
+    if not any("freshness.status=vulnerable" in error for error in stale_errors):
+        failures.append("V1 regression accepts a current-safe/historical-only candidate")
+
+    no_attacker_record = scenario_record(
+        template,
+        {"id": "no-attacker-control-regression", "work_mode": "local-lab", "pass": ["A0", "T1"], "not_applicable": []},
+    )
+    no_attacker_record["threat_model"]["attacker_controls"] = []
+    no_attacker_errors, _ = validate(no_attacker_record)
+    if not any("concrete attacker-controlled" in error for error in no_attacker_errors):
+        failures.append("T1 regression accepts a candidate with no attacker-controlled input")
+
+    triage_record = scenario_record(
+        template,
+        {"id": "triage-regression", "work_mode": "local-lab", "pass": ["A0", "T1", "V1", "E1", "X1", "I1"], "not_applicable": []},
+    )
+
+    def triage_fixture(applies: str | None = None, final: str = "survives", classification: str = "security-vulnerability") -> dict:
+        return {
+            "schema_version": 1,
+            "kind": "mask0ff-triage-review",
+            "candidate_id": "triage-regression",
+            "discovery_owner": "discovery-eval",
+            "reviewer_owner": "triager-eval",
+            "reviewed_at_utc": "2026-08-10T00:00:00Z",
+            "current_version_checked": True,
+            "security_contract_checked": True,
+            "attacker_control_checked": True,
+            "authority_delta_checked": True,
+            "rejection_tests": [
+                {
+                    "id": test_id,
+                    "status": "applies" if test_id == applies else "defeated",
+                    "rationale": "synthetic triage regression",
+                    "evidence": ["E-001"],
+                }
+                for test_id in MANDATORY_REJECTION_TESTS
+            ],
+            "final_verdict": final,
+            "classification": classification,
+            "reason": "synthetic triage regression",
+        }
+
+    surviving_status, surviving_errors, _ = validate_triage(triage_fixture(), triage_record)
+    if surviving_status != "pass" or surviving_errors:
+        failures.append(f"J1 triage regression rejects a fully defeated candidate: {surviving_errors}")
+
+    rejected_status, rejected_errors, _ = validate_triage(
+        triage_fixture(applies="no-attacker-control", final="reject", classification="insufficient-attacker-control"),
+        triage_record,
+    )
+    if rejected_status != "fail" or rejected_errors:
+        failures.append("J1 triage regression does not fail an applicable vendor rejection")
+
+    surviving_with_applies, _, _ = validate_triage(
+        triage_fixture(applies="working-as-designed"),
+        triage_record,
+    )
+    if surviving_with_applies != "invalid":
+        failures.append("J1 triage regression accepts a survives verdict with an applicable rejection reason")
+
+    generic_id_report = """## Steps to Reproduce
+1. Change the ID parameter.
+## Expected
+The request should fail.
+## Observed
+The response could potentially expose another record.
+## Impact
+The ID may allow unauthorized access, but no response body was captured.
+"""
+    if report_analysis(generic_id_report)["impact"] != "claimed-only":
+        failures.append("triage report treats a generic ID mention and hedged impact as demonstrated evidence")
+
+    vector_result = triage_severity_check(None, "Severity: CVSS 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H")
+    if vector_result["status"] != "vector-provided" or not vector_result["vector"].startswith("3.1/AV:N"):
+        failures.append("triage severity does not preserve an unscored CVSS vector for reviewer calibration")
+
+    no_scope_verdict = triage_verdict(
+        {"missing_sections": [], "has_reproduction_steps": True, "impact": "demonstrated"},
+        {"status": "not-checked"},
+        {"status": "not-provided"},
+        {"status": "no-strong-match"},
+        {"status": "pass"},
+        {"status": "pass"},
+    )
+    if no_scope_verdict != ("needs-more-info", "scope-not-verified"):
+        failures.append("triage report accepts a finding without verified scope")
+
+    candidate_evidence_verdict = triage_verdict(
+        {"missing_sections": [], "has_reproduction_steps": True, "impact": "demonstrated"},
+        {"status": "in-scope"},
+        {"status": "pass", "effective_state": "candidate"},
+        {"status": "no-strong-match"},
+        {"status": "pass"},
+        {"status": "pass"},
+    )
+    if candidate_evidence_verdict != ("needs-more-info", "finding-not-independently-verified"):
+        failures.append("triage report accepts a syntactically valid but unverified finding record")
+
+    boundary_model_result = program_threat_model_check(
+        "Cross-tenant authorization bypass",
+        {
+            "security_boundary_classes": ["cross-tenant authorization"],
+            "excluded_classes": [],
+            "documented_design_behaviors": [],
+            "accepted_classes": [],
+        },
+    )
+    if boundary_model_result["status"] != "pass":
+        failures.append("triage report ignores a program threat model's declared security-boundary classes")
+
+    old_gate_confidence = weird_evidence_confidence(
+        {"gates": {gate: {"status": "pass"} for gate in ("A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "D1")}}
+    )
+    if old_gate_confidence["confidence"] >= 1.0 or not {"T1", "E1", "V1", "J1"}.issubset(old_gate_confidence["missing"]):
+        failures.append("weird-surface evidence confidence ignores the mandatory threat, authority, freshness, or triage gates")
+
+    graph_errors, _graph_warnings = validate_security_graph([])
+    if "security graph must be a JSON object" not in graph_errors:
+        failures.append("security graph validator crashes on or accepts a non-object document")
+
+    malformed_review_status, malformed_review_errors, _malformed_review_warnings = validate_triage([], {})
+    if malformed_review_status != "invalid" or "triage review must be a JSON object" not in malformed_review_errors:
+        failures.append("triage review validator crashes on or accepts a non-object document")
+
+    real_world = json.loads((ROOT / "evals" / "real-world-outcomes.json").read_text(encoding="utf-8"))["cases"]
+
+    def apply_patch(record: dict[str, Any], patch: dict[str, Any]) -> None:
+        for dotted, value in patch.items():
+            target = record
+            parts = dotted.split(".")
+            for part in parts[:-1]:
+                if not isinstance(target.get(part), dict):
+                    target[part] = {}
+                target = target[part]
+            target[parts[-1]] = value
+
+    for case in real_world:
+        case_record = scenario_record(
+            template,
+            {"id": case["id"], "work_mode": "local-lab", "pass": case["gate_requirements"], "not_applicable": []},
+        )
+        apply_patch(case_record, case["record_patch"])
+        gate_errors, _ = validate(case_record)
+        missing_errors = [expected for expected in case["expected_gate_errors"] if not any(expected in error for error in gate_errors)]
+        if missing_errors:
+            failures.append(f"real-world case {case['id']} no longer rejected by the verifier: missing {missing_errors}")
+
+        triage_prerequisite_record = scenario_record(
+            template,
+            {"id": case["id"] + "-j1", "work_mode": "local-lab", "pass": ["A0", "T1", "V1", "E1", "X1", "I1"], "not_applicable": []},
+        )
+        review = triage_fixture(
+            applies=case["triage_review"]["applies"],
+            final=case["triage_review"]["final"],
+            classification=case["triage_review"]["classification"],
+        )
+        review_status, review_errors, _ = validate_triage(review, triage_prerequisite_record)
+        if review_status != case["triage_review"]["expected_status"] or review_errors:
+            failures.append(
+                f"real-world case {case['id']} triage review did not reject as expected: status={review_status} errors={review_errors}"
+            )
 
     adversarial = scenario_record(
         template,
@@ -679,12 +948,12 @@ def main() -> int:
         or reportable_assessment["scores"]["evidence_quality"] != 100
         or reportable_assessment["continue_investigation"] is not False
         or reportable_assessment["continuation"]["continue_work"] is not True
-        or reportable_assessment["continuation"]["mode"] != "reporting-only"
+        or reportable_assessment["continuation"]["mode"] != "reporting-then-resume-sweep"
     ):
         failures.append("reportable assessment fixture does not produce a calibrated terminal 100 score")
 
     candidate_assessment_record = deepcopy(assessment_record)
-    for gate in ("B1", "P1", "C1", "R1", "I1", "S1", "V1", "F1", "D1", "Q1"):
+    for gate in ("B1", "P1", "C1", "R1", "I1", "E1", "S1", "V1", "F1", "J1", "D1", "Q1"):
         candidate_assessment_record["gates"][gate] = {"status": "pending", "evidence": [], "reason": ""}
     candidate_assessment_record["runs"] = []
     candidate_assessment = assess(candidate_assessment_record, assessment_fixture, "2026-08-02T15:00:00+00:00")
@@ -699,7 +968,7 @@ def main() -> int:
         failures.append("candidate assessment does not enforce its score cap and next-gate recommendation")
 
     substantiated_record = deepcopy(assessment_record)
-    for gate in ("R1", "I1", "S1", "V1", "F1", "D1", "Q1"):
+    for gate in ("R1", "I1", "E1", "S1", "V1", "F1", "J1", "D1", "Q1"):
         substantiated_record["gates"][gate] = {"status": "pending", "evidence": [], "reason": ""}
     substantiated_record["runs"] = []
     substantiated_assessment = assess(substantiated_record, assessment_fixture, "2026-08-02T15:00:00+00:00")
@@ -712,7 +981,7 @@ def main() -> int:
         failures.append("substantiated assessment does not enforce its score cap and R1 recommendation")
 
     verified_record = deepcopy(assessment_record)
-    for gate in ("S1", "V1", "F1", "D1", "Q1"):
+    for gate in ("S1", "V1", "F1", "J1", "D1", "Q1"):
         verified_record["gates"][gate] = {"status": "pending", "evidence": [], "reason": ""}
     verified_assessment = assess(verified_record, assessment_fixture, "2026-08-02T15:00:00+00:00")
     if (
@@ -769,10 +1038,149 @@ def main() -> int:
     bad_severity_errors, _ = validate(bad_severity_record, assessment_fixture)
     if (
         not any("severity lacks a rationale" in error for error in bad_severity_errors)
-        or not any("severity lacks evidence" in error for error in bad_severity_errors)
+        or not any("severity requires evidence references" in error for error in bad_severity_errors)
         or not any("severity score must be between 0 and 10" in error for error in bad_severity_errors)
     ):
         failures.append("severity validation accepts an unsupported or out-of-range score")
+
+    from outcome_ledger import KNOWN_SIGNALS, import_outcomes, load_ledger, save_ledger, search_outcomes, stats_outcomes
+
+    import io
+
+    ledger_path = ROOT / "outcome-ledger.eval.json"
+    ledger = load_ledger(ledger_path)
+    ledger["outcomes"] = [
+        {
+            "schema_version": 1,
+            "id": "eval-1",
+            "platform": "bugcrowd",
+            "program": "eval-program",
+            "target": "api.example.test",
+            "vulnerability_class": "idor",
+            "finding_title": "eval IDOR",
+            "verdict": "accepted",
+            "severity": "HIGH",
+            "vendor_reason": "confirmed",
+            "signals": [],
+            "submitted_at_utc": "2026-08-01T00:00:00Z",
+            "recorded_at_utc": "2026-08-01T00:00:00Z",
+            "notes": "",
+        },
+        {
+            "schema_version": 1,
+            "id": "eval-2",
+            "platform": "bugcrowd",
+            "program": "eval-program",
+            "target": "api.example.test",
+            "vulnerability_class": "ato",
+            "finding_title": "eval ATO",
+            "verdict": "informative",
+            "severity": "",
+            "vendor_reason": "working as designed",
+            "signals": ["working-as-designed"],
+            "submitted_at_utc": "2026-08-02T00:00:00Z",
+            "recorded_at_utc": "2026-08-02T00:00:00Z",
+            "notes": "",
+        },
+    ]
+    save_ledger(ledger_path, ledger)
+    ledger = load_ledger(ledger_path)
+    if len(ledger["outcomes"]) != 2:
+        failures.append("outcome ledger roundtrip lost entries")
+    ato_search_stdout = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        search_outcomes(
+            argparse.Namespace(ledger=ledger_path, platform=None, program=None, class_name="ato", verdict=None, signal=None, query=None)
+        )
+        ato_search_text = sys.stdout.getvalue()
+    finally:
+        sys.stdout = ato_search_stdout
+    if "eval-2" not in ato_search_text:
+        failures.append("outcome ledger search by class did not return the ATO match")
+
+    stats_parser = argparse.Namespace(ledger=ledger_path)
+    stats_stdout = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        stats_outcomes(stats_parser)
+        stats_text = sys.stdout.getvalue()
+    finally:
+        sys.stdout = stats_stdout
+    stats_data = json.loads(stats_text)
+    if stats_data["by_program"]["eval-program"]["acceptance_rate"] != 0.5:
+        failures.append("outcome ledger stats acceptance rate is incorrect")
+    if stats_data["by_class"]["ato"]["acceptance_rate"] != 0.0:
+        failures.append("outcome ledger stats does not expose low-acceptance classes as T0 prior art")
+
+    integer_id = 7
+    ledger["outcomes"].append({"id": integer_id})
+    save_ledger(ledger_path, ledger)
+    import_path = ROOT / "outcome-import.eval.json"
+    import_path.write_text(json.dumps([{"id": integer_id, "platform": "eval", "program": "eval"}]), encoding="utf-8")
+    import_stdout = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        import_outcomes(argparse.Namespace(ledger=ledger_path, file=import_path))
+    finally:
+        sys.stdout = import_stdout
+    imported_ledger = load_ledger(ledger_path)
+    if sum(1 for item in imported_ledger["outcomes"] if str(item.get("id")) == str(integer_id)) != 1:
+        failures.append("outcome ledger import duplicates an existing numeric report id")
+    import_path.unlink(missing_ok=True)
+    ledger_path.unlink(missing_ok=True)
+
+    from owner_matrix import validate_matrix as validate_owner_matrix
+
+    valid_matrix = {
+        "schema_version": 1,
+        "kind": "mask0ff-owner-matrix",
+        "attacker_account": "attacker-eval",
+        "victim_account": "victim-eval",
+        "entries": [
+            {
+                "object_id": "obj-1",
+                "created_by_request": "POST /api/objects (victim-eval)",
+                "created_by_account": "victim-eval",
+                "owner_account": "victim-eval",
+                "expected_allowed_accounts": ["victim-eval"],
+                "tested_account": "attacker-eval",
+                "observed_access": "granted",
+                "evidence": ["E-001"],
+            }
+        ],
+    }
+    matrix_errors, matrix_warnings, matrix_signals = validate_owner_matrix(valid_matrix)
+    if matrix_errors or not matrix_signals:
+        failures.append(f"owner matrix rejects a valid cross-account grant: {matrix_errors}")
+    case_normalized = deepcopy(valid_matrix)
+    case_normalized["entries"][0]["expected_allowed_accounts"] = ["ATTACKER-EVAL"]
+    case_normalized["entries"][0]["tested_account"] = "attacker-eval"
+    _case_errors, _case_warnings, case_signals = validate_owner_matrix(case_normalized)
+    if case_signals:
+        failures.append("owner matrix treats account-name casing as an authorization boundary")
+    self_owned = deepcopy(valid_matrix)
+    self_owned["entries"][0]["tested_account"] = "victim-eval"
+    self_owned_errors, self_owned_warnings, _signals = validate_owner_matrix(self_owned)
+    if not any("accessing an object you own is not broken access control" in warning for warning in self_owned_warnings):
+        failures.append("owner matrix does not warn on self-owned object access")
+    same_principal_matrix = deepcopy(valid_matrix)
+    same_principal_matrix["victim_account"] = "attacker-eval"
+    sp_errors, _sp_warnings, _signals = validate_owner_matrix(same_principal_matrix)
+    if not any("must be distinct principals" in error for error in sp_errors):
+        failures.append("owner matrix accepts identical attacker and victim accounts")
+
+    from report_lint import FORBIDDEN_ATTACKER_PREREQUISITES
+
+    tools_in_steps = (
+        "## Steps to Reproduce\n1. Install the test harness and adb\n2. Run the PoC through mitmproxy\n"
+        "3. Observe root access granted\n## Impact\nFull compromise"
+    )
+    if not any(pattern.search(tools_in_steps) for pattern in FORBIDDEN_ATTACKER_PREREQUISITES):
+        failures.append("report-lint prerequisite detector missed adb/mitm/root access in reproduction steps")
+    clean_steps = "## Steps to Reproduce\n1. Login as attacker account\n2. GET /api/objects/123\n3. Observe the victim-owned object in the response\n## Impact\nCross-account read"
+    if any(pattern.search(clean_steps) for pattern in FORBIDDEN_ATTACKER_PREREQUISITES):
+        failures.append("report-lint prerequisite detector false-positives on a realistic attacker reproduction")
 
     result = {
         "state_scenarios": len(scenarios),

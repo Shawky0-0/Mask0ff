@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-program-threat-model",
+  "platform": "",
+  "program_or_owner": "",
+  "security_boundary_classes": [],
+  "excluded_classes": [],
+  "documented_design_behaviors": [],
+  "prior_triage_decisions": [],
+  "accepted_classes": [],
+  "consent_semantics": "",
+  "notes": ""
+}

@@ -29,14 +29,22 @@ WEIGHTS = {
 }
 
 
+CAMEL_SPLIT = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+
+
 def tokens(value: Any) -> set[str]:
     if isinstance(value, list):
         value = " ".join(str(item) for item in value)
     result: set[str] = set()
-    for token in re.findall(r"[a-z0-9_.:/-]+", str(value).lower()):
+    for raw in re.findall(r"[A-Za-z0-9_.:/-]+", str(value)):
+        token = raw.lower()
         if len(token) > 2:
             result.add(token)
         result.update(part for part in re.split(r"[_.:/-]+", token) if len(part) > 2)
+        for part in re.split(CAMEL_SPLIT, raw):
+            part = part.strip("_.:/-").lower()
+            if len(part) > 2:
+                result.add(part)
     return result
 
 

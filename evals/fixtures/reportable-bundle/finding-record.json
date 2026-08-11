@@ -6,9 +6,13 @@
     "authority": "researcher-owned local lab",
     "program_or_owner": "fixture owner",
     "policy_reference": "local-fixture",
-    "in_scope": ["fixture"],
+    "in_scope": [
+      "fixture"
+    ],
     "out_of_scope": [],
-    "owned_accounts_and_data": ["all fixture data"],
+    "owned_accounts_and_data": [
+      "all fixture data"
+    ],
     "constraints": [],
     "receipt_evidence_id": "",
     "validation_evidence_id": "",
@@ -22,7 +26,9 @@
     "entry_point": "local command",
     "controlled_input": "synthetic fixture",
     "source_sink": "finding record to assessment output",
-    "preconditions": ["owned local lab"],
+    "preconditions": [
+      "owned local lab"
+    ],
     "boundary": "record assertion to verified evidence",
     "primitive": "deterministic validation",
     "impact": "unsupported state is rejected",
@@ -30,20 +36,126 @@
     "fix_invariant": "claims remain bound to valid evidence"
   },
   "gates": {
-    "A0": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "A1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "H1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "B1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "P1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "C1": {"status": "pass", "evidence": ["E-002"], "reason": ""},
-    "R1": {"status": "pass", "evidence": ["E-001", "E-002"], "reason": ""},
-    "X1": {"status": "pass", "evidence": ["E-006", "E-003", "E-004", "E-005"], "reason": ""},
-    "I1": {"status": "pass", "evidence": ["E-001"], "reason": ""},
-    "S1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
-    "V1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
-    "F1": {"status": "not_applicable", "evidence": [], "reason": "Deterministic fixture."},
-    "D1": {"status": "pass", "evidence": ["E-002"], "reason": ""},
-    "Q1": {"status": "pass", "evidence": ["E-001", "E-002"], "reason": ""}
+    "A0": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "A1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "H1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "B1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "P1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "C1": {
+      "status": "pass",
+      "evidence": [
+        "E-002"
+      ],
+      "reason": ""
+    },
+    "R1": {
+      "status": "pass",
+      "evidence": [
+        "E-001",
+        "E-002"
+      ],
+      "reason": ""
+    },
+    "X1": {
+      "status": "pass",
+      "evidence": [
+        "E-006",
+        "E-003",
+        "E-004",
+        "E-005"
+      ],
+      "reason": ""
+    },
+    "I1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "S1": {
+      "status": "not_applicable",
+      "evidence": [],
+      "reason": "Deterministic fixture."
+    },
+    "V1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "F1": {
+      "status": "not_applicable",
+      "evidence": [],
+      "reason": "Deterministic fixture."
+    },
+    "D1": {
+      "status": "pass",
+      "evidence": [
+        "E-002"
+      ],
+      "reason": ""
+    },
+    "Q1": {
+      "status": "pass",
+      "evidence": [
+        "E-001",
+        "E-002"
+      ],
+      "reason": ""
+    },
+    "J1": {
+      "status": "pass",
+      "evidence": [
+        "E-007"
+      ],
+      "reason": ""
+    },
+    "T1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    },
+    "E1": {
+      "status": "pass",
+      "evidence": [
+        "E-001"
+      ],
+      "reason": ""
+    }
   },
   "evidence": [
     {
@@ -105,11 +217,31 @@
       "captured_at_utc": "2026-08-02T15:05:00Z",
       "observation": "Independent X1 review artifact.",
       "redacted": false
+    },
+    {
+      "id": "E-007",
+      "kind": "triage-review",
+      "path": "artifacts/E-007-triage-review.json",
+      "sha256": "3ab99fbf848ee52f4e4395d343a48a1dea8c22e76744ce3640baf83ecceae26c",
+      "size_bytes": 3211,
+      "captured_at_utc": "2026-08-02T14:00:00Z",
+      "observation": "Adversarial J1 triage verdict: survives / security-vulnerability",
+      "redacted": false
     }
   ],
   "runs": [
-    {"id": "run-1", "evidence": ["E-001"]},
-    {"id": "run-2", "evidence": ["E-002"]}
+    {
+      "id": "run-1",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "run-2",
+      "evidence": [
+        "E-002"
+      ]
+    }
   ],
   "validation": {
     "status": "pass",
@@ -118,12 +250,26 @@
     "validator_owner": "mask0ff_verifier",
     "blind_packet_evidence_id": "E-005",
     "review_evidence_id": "E-006",
-    "reproduction_evidence": ["E-003"],
+    "reproduction_evidence": [
+      "E-003"
+    ],
     "verdict": "confirmed"
   },
   "claims": [
-    {"statement": "The local proof artifact is intact.", "basis": "observed", "evidence": ["E-001"]},
-    {"statement": "The independent control artifact is intact.", "basis": "observed", "evidence": ["E-002"]}
+    {
+      "statement": "The local proof artifact is intact.",
+      "basis": "observed",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "statement": "The independent control artifact is intact.",
+      "basis": "observed",
+      "evidence": [
+        "E-002"
+      ]
+    }
   ],
   "severity": {
     "rating": "",
@@ -134,5 +280,109 @@
     "evidence": []
   },
   "safe_stopping_point": "Fixture assessment complete.",
-  "open_questions": []
+  "open_questions": [],
+  "threat_model": {
+    "attacker_actor": "external eval attacker",
+    "victim_actor": "eval victim",
+    "attacker_principal": "low-authority-eval-principal",
+    "victim_principal": "higher-authority-eval-service",
+    "attacker_controls": [
+      "synthetic eval input"
+    ],
+    "attacker_does_not_control": [
+      "victim policy and protected capability"
+    ],
+    "required_victim_actions": [
+      "process attacker input"
+    ],
+    "required_admin_actions": [],
+    "trust_principals": [
+      "low-authority-eval-principal",
+      "higher-authority-eval-service"
+    ],
+    "security_contract": {
+      "statement": "Low-authority eval input must not gain the protected eval capability.",
+      "basis": "documented",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    "consent_analysis": {
+      "explicit_authorization_required": false,
+      "explicit_authorization_present": false,
+      "authorized_actor": "",
+      "outcome": "not-applicable",
+      "evidence": []
+    },
+    "authority_delta": {
+      "before": [
+        "submit eval input"
+      ],
+      "after": [
+        "submit eval input",
+        "invoke protected eval capability"
+      ],
+      "gained": [
+        "invoke protected eval capability"
+      ],
+      "equivalent_authority_already_held": false,
+      "protected_property": "eval authorization boundary",
+      "boundary_crossed": true,
+      "evidence": [
+        "E-001"
+      ]
+    },
+    "attacker_control_evidence": [
+      "E-001"
+    ],
+    "trust_model_evidence": [
+      "E-001"
+    ]
+  },
+  "freshness": {
+    "checked_at_utc": "2026-08-02T15:00:00Z",
+    "tested_version_or_revision": "eval-current",
+    "current_supported_version_or_revision": "eval-current",
+    "status": "vulnerable",
+    "submission_relevance": "current-vulnerable",
+    "evidence": [
+      "E-001"
+    ]
+  },
+  "impact_model": {
+    "demonstrated_effects": [
+      "protected eval capability reached by low-authority input"
+    ],
+    "bounded_inferences": [],
+    "attacker_gain": [
+      "invoke protected eval capability"
+    ],
+    "victim_loss": [
+      "authorization boundary"
+    ],
+    "preconditions": [
+      "owned deterministic fixture"
+    ],
+    "blast_radius": "single synthetic fixture object",
+    "counterfactual_if_fixed": "low-authority input cannot invoke the protected eval capability",
+    "evidence": [
+      "E-001"
+    ]
+  },
+  "classification": {
+    "status": "security-vulnerability",
+    "reason": "Synthetic fixture survives all security-truth and triage gates.",
+    "evidence": [
+      "E-001",
+      "E-007"
+    ]
+  },
+  "triage": {
+    "status": "pass",
+    "discovery_owner": "mask0ff_researcher",
+    "reviewer_owner": "mask0ff_triager",
+    "review_evidence_id": "E-007",
+    "verdict": "survives",
+    "classification": "security-vulnerability"
+  }
 }

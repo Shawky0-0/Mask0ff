@@ -67,10 +67,24 @@ def main() -> int:
             errors.append("opencode.json is missing")
             config = {}
         else:
-            config = json.loads(config_file.read_text(encoding="utf-8-sig"))
+            try:
+                config = json.loads(config_file.read_text(encoding="utf-8-sig"))
+            except json.JSONDecodeError:
+                errors.append("opencode.json is not valid JSON")
+                config = {}
+            if not isinstance(config, dict):
+                errors.append("opencode.json must be a JSON object")
+                config = {}
             if config.get("$schema") != "https://opencode.ai/config.json":
                 errors.append("opencode.json schema URL is invalid")
-            if config.get("permission", {}).get("skill", {}).get("mask0ff") != "allow":
+            permissions = config.get("permission")
+            globally_allowed = permissions == "allow"
+            skill_allowed = (
+                isinstance(permissions, dict)
+                and isinstance(permissions.get("skill"), dict)
+                and permissions["skill"].get("mask0ff") == "allow"
+            )
+            if not globally_allowed and not skill_allowed:
                 errors.append("opencode.json does not allow the mask0ff skill")
         cache_files = [
             path.relative_to(root).as_posix()

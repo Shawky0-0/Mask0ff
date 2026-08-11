@@ -43,7 +43,9 @@ def main() -> int:
     parser.add_argument("--metadata", action="store_true")
     args = parser.parse_args()
 
-    connection = sqlite3.connect(args.database)
+    if not args.database.is_file():
+        parser.error(f"advisory database is not a file: {args.database}")
+    connection = sqlite3.connect(f"file:{args.database.resolve()}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
     try:
         if args.metadata:

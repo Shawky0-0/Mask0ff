@@ -16,6 +16,7 @@ from authorization_gate import evaluate
 from independent_validation import referenced_evidence, validate_review
 from program_profile import validate_profile
 from session_profile import validate_session
+from triage_review import validate_triage
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,6 +97,10 @@ def init_bundle(args: argparse.Namespace) -> int:
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "source-map.json", bundle / "source-map.json")
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "validation-packet.json", bundle / "validation-packet.json")
     shutil.copy2(ROOT / "assets" / "evidence-bundle" / "independent-validation.json", bundle / "independent-validation.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "triage-review.json", bundle / "triage-review.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "security-graph.json", bundle / "security-graph.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "program-threat-model.json", bundle / "program-threat-model.json")
+    shutil.copy2(ROOT / "assets" / "evidence-bundle" / "owner-matrix.json", bundle / "owner-matrix.json")
     print(path)
     return 0
 
@@ -359,6 +364,79 @@ def bind_challenge(args: argparse.Namespace) -> int:
     return 0 if review_status == "pass" else 2
 
 
+def bind_triage(args: argparse.Namespace) -> int:
+    bundle = args.bundle.resolve()
+    record_path, record = load_record(bundle)
+    source = args.review.resolve()
+    if not source.is_file():
+        raise ValueError(f"triage review is not a file: {source}")
+    review = json.loads(source.read_text(encoding="utf-8-sig"))
+    if not isinstance(review, dict):
+        raise ValueError("triage review must be a JSON object")
+    review_status, errors, warnings = validate_triage(review, record)
+    if errors:
+        raise ValueError("; ".join(errors))
+    evidence_id = next_evidence_id(record)
+    destination = bundle / "artifacts" / "raw" / f"{evidence_id}-triage-review.json"
+    shutil.copy2(source, destination)
+    item = evidence_item(
+        bundle,
+        destination,
+        evidence_id=evidence_id,
+        kind="triage-review",
+        observation=f"Adversarial J1 triage verdict: {review.get('final_verdict')} / {review.get('classification')}",
+    )
+    record.setdefault("evidence", []).append(item)
+    record["triage"] = {
+        "status": review_status,
+        "discovery_owner": review.get("discovery_owner", ""),
+        "reviewer_owner": review.get("reviewer_owner", ""),
+        "review_evidence_id": evidence_id,
+        "verdict": review.get("final_verdict", ""),
+        "classification": review.get("classification", ""),
+    }
+    if review_status == "pass":
+        record["classification"] = {
+            "status": "security-vulnerability",
+            "reason": review.get("reason", ""),
+            "evidence": [evidence_id],
+        }
+        gate_status = "pass"
+    elif review_status == "fail":
+        record["classification"] = {
+            "status": review.get("classification", "needs-more-evidence"),
+            "reason": review.get("reason", ""),
+            "evidence": [evidence_id],
+        }
+        gate_status = "fail"
+    else:
+        record["classification"] = {
+            "status": "needs-more-evidence",
+            "reason": review.get("reason", ""),
+            "evidence": [evidence_id],
+        }
+        gate_status = "pending"
+    record["gates"]["J1"] = {
+        "status": gate_status,
+        "evidence": [evidence_id],
+        "reason": "" if gate_status == "pass" else str(review.get("reason", "")),
+    }
+    save_record(record_path, record)
+    print(
+        json.dumps(
+            {
+                "status": review_status,
+                "evidence": item,
+                "triage": record["triage"],
+                "classification": record["classification"],
+                "warnings": warnings,
+            },
+            indent=2,
+        )
+    )
+    return 0 if review_status == "pass" else 2
+
+
 def verify_bundle(args: argparse.Namespace) -> int:
     bundle = args.bundle.resolve()
     record_path, record = load_record(bundle)
@@ -484,6 +562,11 @@ def build_parser() -> argparse.ArgumentParser:
     challenge.add_argument("bundle", type=Path)
     challenge.add_argument("review", type=Path)
     challenge.set_defaults(handler=bind_challenge)
+
+    triage = subparsers.add_parser("triage")
+    triage.add_argument("bundle", type=Path)
+    triage.add_argument("review", type=Path)
+    triage.set_defaults(handler=bind_triage)
 
     verify = subparsers.add_parser("verify")
     verify.add_argument("bundle", type=Path)

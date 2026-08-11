@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-triage-review",
+  "candidate_id": "reportable-fixture",
+  "discovery_owner": "mask0ff_researcher",
+  "reviewer_owner": "mask0ff_triager",
+  "current_version_checked": true,
+  "security_contract_checked": true,
+  "attacker_control_checked": true,
+  "authority_delta_checked": true,
+  "rejection_tests": [
+    {
+      "id": "working-as-designed",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats working-as-designed.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "explicit-user-or-admin-consent",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats explicit-user-or-admin-consent.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "same-trust-principal",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats same-trust-principal.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "no-attacker-control",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats no-attacker-control.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "equivalent-authority",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats equivalent-authority.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "stale-or-fixed-current-version",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats stale-or-fixed-current-version.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "functional-correctness-only",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats functional-correctness-only.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "unrealistic-or-self-imposed-precondition",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats unrealistic-or-self-imposed-precondition.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "no-security-contract",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats no-security-contract.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "potential-impact-only",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats potential-impact-only.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "accepted-risk-or-documented-policy",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats accepted-risk-or-documented-policy.",
+      "evidence": [
+        "E-001"
+      ]
+    },
+    {
+      "id": "duplicate-or-known-issue",
+      "status": "defeated",
+      "rationale": "Deterministic fixture evidence defeats duplicate-or-known-issue.",
+      "evidence": [
+        "E-001"
+      ]
+    }
+  ],
+  "final_verdict": "survives",
+  "classification": "security-vulnerability",
+  "reason": "The deterministic fixture establishes attacker control, a defended boundary, authority gain, current-version relevance, and demonstrated impact.",
+  "reviewed_at_utc": "2026-08-02T15:06:00Z"
+}

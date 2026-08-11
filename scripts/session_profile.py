@@ -29,6 +29,28 @@ FORBIDDEN_KEYS = {
     "secret",
     "value",
 }
+SECRET_VALUE_PATTERNS = [
+    re.compile(r"(?i)\b(authorization|cookie|set-cookie)\s*[:=]\s*\S"),
+    re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
+    re.compile(r"\bgh[opusr]_[A-Za-z0-9]{20,255}\b"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,255}\b"),
+    re.compile(r"\bglpat-[A-Za-z0-9_-]{20,255}\b"),
+    re.compile(r"\bglcbt-[A-Za-z0-9_-]{20,255}\b"),
+    re.compile(r"\b(?:sk|rk)_live_[A-Za-z0-9]{16,255}\b"),
+    re.compile(r"-----BEGIN [^-]*PRIVATE KEY(?: BLOCK)?-----"),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
+]
+URL_USERINFO = re.compile(r"^[a-z][a-z0-9+.-]*://[^/@\s]+:[^@\s]+@", re.I)
+CREDENTIAL_REFERENCE_KEYS = {
+    "token_env",
+    "cookie_env",
+    "header_env",
+    "secret_env",
+    "certificate_env",
+    "password_env",
+    "access_token_env",
+    "refresh_token_env",
+}
 
 
 def utc_now() -> str:
@@ -53,6 +75,11 @@ def secret_field_errors(value: Any, path: str = "") -> list[str]:
     elif isinstance(value, list):
         for index, child in enumerate(value):
             errors.extend(secret_field_errors(child, f"{path}[{index}]"))
+    elif isinstance(value, str) and value.strip():
+        if URL_USERINFO.match(value):
+            errors.append(f"plaintext credentials embedded in a URL value: {path or 'value'}")
+        elif any(pattern.search(value) for pattern in SECRET_VALUE_PATTERNS):
+            errors.append(f"plaintext secret material in a value: {path or 'value'}")
     return errors
 
 
@@ -93,6 +120,14 @@ def validate_session(
         errors.append("this auth_type requires at least one environment-variable reference")
     if profile.get("auth_type") == "password" and "secret_env" not in references:
         errors.append("password auth requires credential_references.secret_env")
+    if profile.get("auth_type") in {"bearer", "api-key", "cookie", "oauth", "client-certificate"}:
+        credential_keys = set(references)
+        if not (credential_keys & CREDENTIAL_REFERENCE_KEYS):
+            errors.append(
+                f"{profile.get('auth_type')} auth requires a credential-bearing reference "
+                f"(token_env, cookie_env, header_env, secret_env, certificate_env, or password_env); "
+                f"a username-only reference is not sufficient"
+            )
     if profile.get("auth_type") == "browser-session" and not str(profile.get("browser_profile", "")).strip():
         warnings.append("browser-session has no browser_profile label; bind it to the active signed-in browser session at runtime")
     expires_at = str(profile.get("expires_at_utc", "")).strip()

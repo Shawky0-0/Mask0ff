@@ -6,15 +6,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from independent_validation import INDEPENDENCE_MODES, validate_review
+from triage_review import validate_triage
 
 
 VALID_STATUSES = {"pending", "pass", "fail", "blocked", "not_applicable"}
-GATES = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "S1", "V1", "F1", "D1", "Q1")
-CORE_VERIFIED = ("A0", "A1", "H1", "B1", "P1", "C1", "R1", "X1", "I1")
+GATES = ("A0", "A1", "T1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "E1", "S1", "V1", "F1", "J1", "D1", "Q1")
+CORE_VERIFIED = ("A0", "A1", "T1", "H1", "B1", "P1", "C1", "R1", "X1", "I1", "E1")
 APPLICABILITY = ("S1", "V1", "F1")
 ASSESSMENT_MODES = {"black-box", "gray-box", "white-box", "hybrid"}
 SECRET_KEYS = {
@@ -29,6 +31,27 @@ SECRET_KEYS = {
     "cookie",
     "session_cookie",
     "secret",
+}
+SECRET_VALUE_PATTERNS = [
+    re.compile(r"(?i)\b(authorization|cookie|set-cookie)\s*[:=]\s*\S"),
+    re.compile(r"(?i)\b(?:x-[a-z0-9_-]*)?(?:api[-_]?key|auth[-_]?token|access[-_]?token|refresh[-_]?token|session[-_]?token|client[-_]?secret)\s*[:=]\s*\S"),
+    re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
+    re.compile(r"(?i)\baws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*\S+"),
+    re.compile(r"\bgh[opusr]_[A-Za-z0-9]{20,255}\b"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,255}\b"),
+    re.compile(r"\bglpat-[A-Za-z0-9_-]{20,255}\b"),
+    re.compile(r"\bglcbt-[A-Za-z0-9_-]{20,255}\b"),
+    re.compile(r"\b(?:sk|rk)_live_[A-Za-z0-9]{16,255}\b"),
+    re.compile(r"-----BEGIN [^-]*PRIVATE KEY(?: BLOCK)?-----"),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
+    re.compile(r"(?i)\b(password|passwd|secret)\s+(?:is|[:=])\s*(\S{4,})"),
+]
+SECRET_VALUE_STOPWORDS = {
+    "required", "optional", "protected", "hidden", "field", "value", "stored", "hashed",
+    "encrypted", "correct", "wrong", "missing", "checked", "complexity", "policy",
+    "length", "strength", "reset", "rotation", "leak", "leaked", "exposed", "expired",
+    "handling", "verification", "reuse", "researcher-owned", "synthetic", "canary",
+    "placeholder", "example", "sample", "dummy", "test", "testing",
 }
 
 
@@ -45,7 +68,7 @@ def calculate_state(record: dict[str, Any]) -> str:
         return "substantiated"
     if not all(status(record, gate) in {"pass", "not_applicable"} for gate in APPLICABILITY):
         return "verified"
-    if status(record, "D1") == "pass" and status(record, "Q1") == "pass":
+    if status(record, "J1") == "pass" and status(record, "D1") == "pass" and status(record, "Q1") == "pass":
         return "reportable"
     return "verified"
 
@@ -77,6 +100,17 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def refs_ok(refs: Any, known: set[str], label: str, errors: list[str], *, require: bool) -> set[str]:
+    """Validate evidence references and return the known subset."""
+    items = list(refs) if isinstance(refs, list) else []
+    unknown = sorted({str(item) for item in items if str(item) not in known})
+    if unknown:
+        errors.append(f"{label} references unknown evidence ids: {', '.join(unknown)}")
+    if require and not items:
+        errors.append(f"{label} requires evidence references")
+    return {str(item) for item in items if str(item) in known}
+
+
 def embedded_secret_fields(value: Any, path: str = "") -> list[str]:
     errors: list[str] = []
     if isinstance(value, dict):
@@ -88,6 +122,17 @@ def embedded_secret_fields(value: Any, path: str = "") -> list[str]:
     elif isinstance(value, list):
         for index, child in enumerate(value):
             errors.extend(embedded_secret_fields(child, f"{path}[{index}]"))
+    elif isinstance(value, str) and value.strip():
+        for pattern in SECRET_VALUE_PATTERNS:
+            match = pattern.search(value)
+            if not match:
+                continue
+            if pattern.groups >= 2:
+                tail = (match.group(pattern.groups) or "").strip().lower()
+                if tail in SECRET_VALUE_STOPWORDS:
+                    continue
+            errors.append(f"finding record contains likely secret material at {path or 'value'}")
+            break
     return errors
 
 
@@ -225,11 +270,118 @@ def validate(
             if not valid_artifact:
                 errors.append("A0 lacks a passing validation artifact bound to its authorization receipt")
 
+    threat = record.get("threat_model")
+    if not isinstance(threat, dict):
+        if any(status(record, gate) in {"pass", "fail"} for gate in ("T1", "E1", "J1")):
+            errors.append("threat_model must be an object")
+        else:
+            warnings.append("threat_model is missing")
+        threat = {}
+    if status(record, "T1") == "pass":
+        for field in ("attacker_actor", "victim_actor", "attacker_principal", "victim_principal"):
+            if not str(threat.get(field, "")).strip():
+                errors.append(f"T1 threat_model.{field} is required")
+        if not isinstance(threat.get("attacker_controls"), list) or not threat.get("attacker_controls"):
+            errors.append("T1 requires at least one concrete attacker-controlled input or structure")
+        attacker_control_refs = refs_ok(threat.get("attacker_control_evidence", []), evidence_ids, "T1 attacker control", errors, require=True)
+        if not isinstance(threat.get("attacker_does_not_control"), list):
+            errors.append("T1 attacker_does_not_control must be a list")
+        principals = threat.get("trust_principals")
+        if not isinstance(principals, list) or not principals:
+            errors.append("T1 requires explicit trust_principals")
+        trust_refs = refs_ok(threat.get("trust_model_evidence", []), evidence_ids, "T1 trust model", errors, require=True)
+        contract = threat.get("security_contract") if isinstance(threat.get("security_contract"), dict) else {}
+        if not str(contract.get("statement", "")).strip():
+            errors.append("T1 requires a security-contract statement")
+        if contract.get("basis") not in {"documented", "protocol-required", "implementation-enforced", "prior-fix", "strongly-inferred"}:
+            errors.append("T1 security_contract.basis must establish an intended security property")
+        contract_refs = refs_ok(contract.get("evidence", []), evidence_ids, "T1 security_contract", errors, require=True)
+        t1_gate_refs = {str(ref) for ref in gates.get("T1", {}).get("evidence", [])} if isinstance(gates.get("T1"), dict) else set()
+        required_t1_refs = attacker_control_refs | trust_refs | contract_refs
+        if required_t1_refs - t1_gate_refs:
+            errors.append("T1 gate evidence does not bind all attacker-control, trust-model, and security-contract evidence")
+        consent = threat.get("consent_analysis") if isinstance(threat.get("consent_analysis"), dict) else {}
+        if consent.get("outcome") not in {"not-authorized-by-consent", "security-guarantee-survives-consent", "not-applicable"}:
+            errors.append("T1 consent_analysis.outcome does not defeat explicit authorization/configuration as an explanation")
+        refs_ok(consent.get("evidence", []), evidence_ids, "T1 consent_analysis", errors, require=bool(consent.get("explicit_authorization_present")))
+        if consent.get("explicit_authorization_present") is True and consent.get("outcome") != "security-guarantee-survives-consent":
+            errors.append("T1 cannot pass when the exact alleged effect was explicitly authorized and no surviving security guarantee is proven")
+
+    freshness = record.get("freshness")
+    if not isinstance(freshness, dict):
+        if status(record, "V1") in {"pass", "fail"}:
+            errors.append("freshness must be an object")
+        else:
+            warnings.append("freshness is missing")
+        freshness = {}
+    if status(record, "V1") == "pass":
+        for field in ("checked_at_utc", "tested_version_or_revision", "current_supported_version_or_revision"):
+            if not str(freshness.get(field, "")).strip():
+                errors.append(f"V1 freshness.{field} is required")
+        if freshness.get("status") != "vulnerable":
+            errors.append("V1 requires freshness.status=vulnerable on the tested current/supported release")
+        relevance = freshness.get("submission_relevance")
+        if relevance not in {"current-vulnerable", "supported-vulnerable"}:
+            errors.append("V1 requires current-vulnerable or supported-vulnerable submission relevance")
+        if relevance == "current-vulnerable" and str(freshness.get("tested_version_or_revision")) != str(freshness.get("current_supported_version_or_revision")):
+            errors.append("V1 current-vulnerable requires the tested version/revision to match the current supported version/revision")
+        freshness_refs = refs_ok(freshness.get("evidence", []), evidence_ids, "V1 freshness", errors, require=True)
+        v1_gate_refs = {str(ref) for ref in gates.get("V1", {}).get("evidence", [])} if isinstance(gates.get("V1"), dict) else set()
+        if freshness_refs - v1_gate_refs:
+            errors.append("V1 gate evidence does not bind all freshness evidence")
+
     if status(record, "C1") == "pass":
         proof_refs = set(gates.get("P1", {}).get("evidence", [])) if isinstance(gates.get("P1"), dict) else set()
         control_refs = set(gates.get("C1", {}).get("evidence", [])) if isinstance(gates.get("C1"), dict) else set()
         if not (control_refs - proof_refs):
             errors.append("C1 lacks control evidence distinct from the proof evidence")
+
+    authority = threat.get("authority_delta") if isinstance(threat.get("authority_delta"), dict) else {}
+    if status(record, "E1") == "pass":
+        if authority.get("boundary_crossed") is not True:
+            errors.append("E1 requires authority_delta.boundary_crossed=true")
+        if authority.get("equivalent_authority_already_held") is not False:
+            errors.append("E1 requires proof that the attacker did not already hold equivalent authority")
+        before = authority.get("before") if isinstance(authority.get("before"), list) else []
+        after = authority.get("after") if isinstance(authority.get("after"), list) else []
+        gained = authority.get("gained") if isinstance(authority.get("gained"), list) else []
+        protected = str(authority.get("protected_property", "")).strip()
+        if not before or not after:
+            errors.append("E1 requires explicit before and after authority/capability sets")
+        if gained and any(item not in after for item in gained):
+            errors.append("E1 gained capabilities must appear in authority_delta.after")
+        if gained and any(item in before for item in gained):
+            errors.append("E1 gained capabilities cannot already appear in authority_delta.before")
+        if not gained and not protected:
+            errors.append("E1 requires gained capabilities or a concrete protected property loss")
+        authority_refs = refs_ok(authority.get("evidence", []), evidence_ids, "E1 authority_delta", errors, require=True)
+        e1_gate_refs = {str(ref) for ref in gates.get("E1", {}).get("evidence", [])} if isinstance(gates.get("E1"), dict) else set()
+        if authority_refs - e1_gate_refs:
+            errors.append("E1 gate evidence does not bind all authority-delta evidence")
+        contract = threat.get("security_contract") if isinstance(threat.get("security_contract"), dict) else {}
+        if not str(contract.get("statement", "")).strip():
+            errors.append("E1 lacks the security contract being violated")
+
+    if status(record, "J1") == "pass":
+        j1_refs = set(gates.get("J1", {}).get("evidence", [])) if isinstance(gates.get("J1"), dict) else set()
+        triage_refs = {
+            ref for ref in j1_refs if str(evidence_by_id.get(ref, {}).get("kind", "")) == "triage-review"
+        }
+        if not triage_refs:
+            errors.append("J1 lacks triage-review evidence")
+        elif record_path is not None:
+            review_id = sorted(triage_refs)[0]
+            review_item = evidence_by_id[review_id]
+            review_path = (record_path.resolve().parent / str(review_item.get("path", ""))).resolve()
+            try:
+                review = json.loads(review_path.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError) as error:
+                errors.append(f"J1 triage review artifact cannot be read: {error}")
+            else:
+                review_status, review_errors, _review_warnings = validate_triage(review, record)
+                if review_status != "pass":
+                    errors.append(f"J1 triage review status is {review_status}")
+                errors.extend(f"J1 triage: {item}" for item in review_errors)
 
     fingerprint = record.get("fingerprint", {})
     for field in ("component", "entry_point", "controlled_input", "source_sink", "boundary", "primitive", "impact", "fix_invariant"):
@@ -259,6 +411,43 @@ def validate(
             if ref not in evidence_ids:
                 errors.append(f"{label} references unknown evidence id {ref!r}")
 
+    owner_matrix = record.get("owner_matrix")
+    if isinstance(owner_matrix, dict) and (owner_matrix.get("entries") or owner_matrix.get("attacker_account") or owner_matrix.get("victim_account")):
+        from owner_matrix import validate_matrix as validate_owner_matrix
+
+        matrix_errors, matrix_warnings, _signals = validate_owner_matrix(owner_matrix, record)
+        errors.extend(matrix_errors)
+        warnings.extend(matrix_warnings)
+
+    impact = record.get("impact_model")
+    if not isinstance(impact, dict):
+        if status(record, "I1") in {"pass", "fail"}:
+            errors.append("impact_model must be an object")
+        else:
+            warnings.append("impact_model is missing")
+        impact = {}
+    if status(record, "I1") == "pass":
+        demonstrated = impact.get("demonstrated_effects") if isinstance(impact.get("demonstrated_effects"), list) else []
+        if not demonstrated:
+            errors.append("I1 requires at least one directly demonstrated security effect")
+        speculative_terms = ("potential", "could ", "may ", "might ", "theoretical", "possibly", "would allow")
+        if any(any(term in str(effect).lower() for term in speculative_terms) for effect in demonstrated):
+            errors.append("I1 demonstrated_effects contains speculative language; move unproven consequences to bounded_inferences")
+        if not (impact.get("attacker_gain") or impact.get("victim_loss")):
+            errors.append("I1 requires attacker_gain or victim_loss")
+        if not isinstance(impact.get("preconditions"), list):
+            errors.append("I1 preconditions must be a list")
+        if not isinstance(impact.get("bounded_inferences"), list):
+            errors.append("I1 bounded_inferences must be a list")
+        if not str(impact.get("blast_radius", "")).strip():
+            errors.append("I1 requires a bounded blast_radius")
+        if not str(impact.get("counterfactual_if_fixed", "")).strip():
+            errors.append("I1 requires a counterfactual capability/property statement")
+        impact_refs = refs_ok(impact.get("evidence", []), evidence_ids, "I1 impact_model", errors, require=True)
+        i1_gate_refs = {str(ref) for ref in gates.get("I1", {}).get("evidence", [])} if isinstance(gates.get("I1"), dict) else set()
+        if impact_refs - i1_gate_refs:
+            errors.append("I1 gate evidence does not bind all impact evidence")
+
     severity = record.get("severity")
     if severity is not None:
         if not isinstance(severity, dict):
@@ -266,14 +455,11 @@ def validate(
         else:
             supplied = any(severity.get(field) not in (None, "", []) for field in ("rating", "cvss_version", "vector", "score"))
             if supplied:
+                if status(record, "I1") != "pass" or status(record, "E1") != "pass":
+                    errors.append("severity cannot be supplied before E1 and I1 pass")
                 if not str(severity.get("rationale", "")).strip():
                     errors.append("supplied severity lacks a rationale")
-                severity_refs = severity.get("evidence", [])
-                if not severity_refs:
-                    errors.append("supplied severity lacks evidence references")
-                for ref in severity_refs:
-                    if ref not in evidence_ids:
-                        errors.append(f"severity references unknown evidence id {ref!r}")
+                refs_ok(severity.get("evidence", []), evidence_ids, "severity", errors, require=True)
                 score_value = severity.get("score")
                 if score_value not in {None, ""} and (
                     not isinstance(score_value, (int, float)) or isinstance(score_value, bool) or not 0 <= score_value <= 10

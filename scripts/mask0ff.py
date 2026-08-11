@@ -22,9 +22,12 @@ COMMANDS = {
     "cases": "query_cases.py",
     "duplicate": "duplicate_check.py",
     "finding": "verify_finding.py",
+    "graph": "security_graph.py",
     "integrity": "verify_integrity.py",
     "challenge": "independent_validation.py",
     "opencode": "validate_opencode.py",
+    "outcome": "outcome_ledger.py",
+    "owner-matrix": "owner_matrix.py",
     "plan": "plan_engagement.py",
     "profile": "program_profile.py",
     "race": "race_condition.py",
@@ -35,9 +38,12 @@ COMMANDS = {
     "sources": "source_status.py",
     "techniques": "query_techniques.py",
     "toolbox": "tool_inventory.py",
+    "triage": "triage_report.py",
+    "triage-review": "triage_review.py",
     "update-advisories": "update_advisory_db.py",
     "update-cases": "update_case_db.py",
     "versions": "version_matrix.py",
+    "weird": "weird_surface.py",
 }
 
 

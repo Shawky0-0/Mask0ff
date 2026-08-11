@@ -29,6 +29,7 @@ from verify_finding import (  # noqa: E402
 GATE_WEIGHTS = {
     "A0": 10,
     "A1": 5,
+    "T1": 5,
     "H1": 5,
     "B1": 10,
     "P1": 20,
@@ -36,9 +37,11 @@ GATE_WEIGHTS = {
     "R1": 15,
     "X1": 20,
     "I1": 10,
+    "E1": 5,
     "S1": 3,
     "V1": 2,
     "F1": 2,
+    "J1": 5,
     "D1": 2,
     "Q1": 1,
 }
@@ -46,16 +49,19 @@ STATE_CAPS = {"blocked": 15, "candidate": 39, "substantiated": 69, "verified": 8
 NEXT_ACTIONS = {
     "A0": "Preserve and validate exact authorization for the target and proposed action; remain passive until it passes.",
     "A1": "Map assets, roles, objects, states, attacker control, and trust boundaries from evidence.",
+    "T1": "Prove the real attacker and victim, attacker-controlled inputs, non-controlled prerequisites, trust principals, the defended security contract, and consent/config semantics from evidence.",
     "H1": "Write one falsifiable boundary-failure hypothesis tied to an observed signal.",
     "B1": "Capture the secure or intended baseline before changing one variable.",
-    "P1": "Run the minimum safe controlled proof with owned accounts, synthetic data, or a local lab.",
+    "P1": "Run the minimum safe controlled proof with owned accounts, synthetic data, or a local lab and preserve observable impact evidence.",
     "C1": "Add negative, differential, wrong-role, intended-behavior, and patched controls as applicable.",
     "R1": "Repeat from clean state and preserve a second distinct run artifact.",
     "X1": "Hand a blind evidence packet to a separate validator; require independent reproduction artifacts, adversarial chain review, and alternative-explanation controls.",
     "I1": "Separate observed impact from bounded inference and record preconditions and blast radius.",
+    "E1": "Record capabilities and protected properties before/after, the authority gain or property loss, and rule out equivalent authority already held.",
     "S1": "Trace the root cause or record a calibrated black-box root-cause hypothesis.",
-    "V1": "Test or source-trace the affected version and configuration range.",
+    "V1": "Test or source-trace the affected version range including the current supported release; do not submit on stale or already-fixed versions.",
     "F1": "Verify that the proposed invariant-level fix prevents the effect without breaking the legitimate path.",
+    "J1": "Run the adversarial vendor-triage review: defeat every applicable rejection (working-as-designed, consent, same principal, no attacker control, equivalent authority, stale version, functional correctness, unrealistic preconditions, no security contract, potential impact, accepted risk, duplicate) with evidence.",
     "D1": "Record source status, search both public datasets and current primary sources, then compare exact root cause and path.",
     "Q1": "Redact secrets, map every report claim to evidence, lint the report, and calibrate severity.",
 }
@@ -308,7 +314,7 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
         score = min(score, 29)
 
     failed_gates = [gate for gate in GATES if status(record, gate) == "fail"]
-    refuting_failure = next((gate for gate in ("H1", "P1", "C1", "R1", "X1") if gate in failed_gates), None)
+    refuting_failure = next((gate for gate in ("H1", "P1", "C1", "R1", "X1", "J1") if gate in failed_gates), None)
     if authorization_error or effective_state == "blocked":
         verdict = "blocked"
     elif errors:
@@ -319,15 +325,20 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
         verdict = effective_state
 
     if verdict == "blocked":
-        decision = "Stop active testing. Continue only passive analysis or an owned local reproduction until A0 is repaired."
+        decision = "Stop active testing on this target. Pivot to other explicitly authorized targets and classes; go fully passive only when no authorized work remains until A0 is repaired."
         continue_investigation = False
         next_gate = "A0"
         continuation = {
             "continue_work": True,
             "continue_technical_testing": False,
-            "mode": "passive-or-owned-local-only",
+            "mode": "pivot-else-passive",
             "terminal_for_current_hypothesis": True,
-            "safe_alternatives": ["passive artifact review", "owned local reproduction", "request exact authorization input"],
+            "safe_alternatives": [
+                "passive artifact review",
+                "owned local reproduction",
+                "request exact authorization input",
+                "resume recon and testing on other in-scope targets and classes",
+            ],
         }
     elif verdict == "invalid-record":
         decision = "Repair the evidence record before drawing a vulnerability conclusion."
@@ -341,31 +352,41 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
             "safe_alternatives": ["repair evidence paths and hashes", "restore missing artifacts", "rerun validation"],
         }
     elif verdict == "refuted-or-not-reproducible":
-        decision = "Record the current hypothesis as refuted or non-reproducible; preserve the evidence and pivot only from a new observed signal."
-        continue_investigation = False
+        decision = "Record the current hypothesis as refuted or non-reproducible; preserve the evidence and immediately resume the sweep: recon the next untested surface and test the next hypothesis from the strongest remaining signal."
+        continue_investigation = True
         next_gate = refuting_failure
         continuation = {
             "continue_work": True,
-            "continue_technical_testing": False,
-            "mode": "record-refutation-and-review-new-signals",
+            "continue_technical_testing": True,
+            "mode": "resume-sweep-for-next-hypothesis",
             "terminal_for_current_hypothesis": True,
-            "safe_alternatives": ["record the failed hypothesis", "review remaining observed signals", "create one new falsifiable hypothesis only if evidence supports it"],
+            "safe_alternatives": [
+                "record the refuted hypothesis",
+                "resume recon and coverage of untested in-scope surfaces",
+                "test the next falsifiable hypothesis from the strongest remaining signal",
+            ],
         }
     elif effective_state == "reportable":
-        decision = "Stop technical escalation. Finalize redaction and submit through the authorized disclosure channel."
+        decision = "Stop technical escalation for this finding. Finalize redaction and submit through the authorized disclosure channel, then resume the scope sweep for the next finding."
         continue_investigation = False
         next_gate = None
         continuation = {
             "continue_work": True,
             "continue_technical_testing": False,
-            "mode": "reporting-only",
+            "mode": "reporting-then-resume-sweep",
             "terminal_for_current_hypothesis": True,
-            "safe_alternatives": ["final redaction", "report lint", "submission preparation", "respond to triage with bounded evidence"],
+            "safe_alternatives": [
+                "final redaction",
+                "report lint",
+                "submission preparation",
+                "respond to triage with bounded evidence",
+                "after submission, resume recon and testing on the next in-scope surface",
+            ],
         }
     elif effective_state == "verified":
         decision = "Do not escalate impact further. Complete duplicate review and report quality only."
         continue_investigation = True
-        next_gate = next((gate for gate in ("S1", "V1", "F1", "D1", "Q1") if status(record, gate) not in {"pass", "not_applicable"}), None)
+        next_gate = next((gate for gate in ("S1", "V1", "F1", "J1", "D1", "Q1") if status(record, gate) not in {"pass", "not_applicable"}), None)
         continuation = {
             "continue_work": True,
             "continue_technical_testing": False,
@@ -467,10 +488,11 @@ def assess(record: dict[str, Any], record_path: Path, assessed_at: str) -> dict[
             "recommendation": NEXT_ACTIONS["D1"] if status(record, "D1") != "pass" else "Preserve the D1 comparison and residual internal-duplicate risk.",
         },
         "persistence_policy": {
-            "continue_until": "reportable, evidence-refuted, authorization/safety-blocked, or a required external decision is identified",
-            "same_action_failure_limit": 2,
-            "same_blocker_turn_limit": 3,
-            "on_no_progress": "change method, reduce to passive/local proof, or mark blocked with the exact missing input; never repeat indefinitely",
+            "continue_until": "entire scope covered with zero remaining yield, evidence-refuted for all threads, authorization/safety-blocked for the whole engagement, or a required external decision is identified",
+            "same_action_failure_limit": 5,
+            "same_blocker_turn_limit": 5,
+            "per_thread": "failure and blocker limits apply per hypothesis thread and per target; other threads and targets continue",
+            "on_no_progress": "change technique while keeping the thread open, resume the scope sweep on the next untested surface, or mark the thread blocked with the exact missing input; never stop the whole engagement on one thread's blocker",
         },
         "errors": errors,
         "warnings": warnings,

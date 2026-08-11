@@ -162,6 +162,12 @@ def validate_config(
 ) -> tuple[list[str], list[str], dict[str, Any] | None]:
     errors: list[str] = []
     warnings: list[str] = []
+    if not isinstance(data, dict):
+        errors.append("config must be a JSON object")
+        return errors, warnings, None
+    if not isinstance(authorization, (dict, type(None))):
+        errors.append("authorization must be a JSON object")
+        authorization = None
     if data.get("schema_version") != 1:
         errors.append("schema_version must be 1")
     if data.get("kind") != "mask0ff-race-run-config":
