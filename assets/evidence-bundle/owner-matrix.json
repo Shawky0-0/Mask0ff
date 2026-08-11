@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-owner-matrix",
+  "attacker_account": "",
+  "victim_account": "",
+  "entries": [],
+  "notes": "For every access-control candidate, record which request created each object, which account owns it, which accounts should be allowed to access it, and the observed access under the tested account. This is what turns 'I changed a random ID' into 'proven broken access control'."
+}

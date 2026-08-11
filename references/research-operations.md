@@ -180,6 +180,15 @@ Use the method card to generate target-specific hypotheses. Similar technology o
 - Record concurrency, rate, timeout, retries, recursion depth, and total requests.
 - Stop a stage on unexpected load, blocking, scope drift, authentication leakage, or third-party data.
 
+## Perseverance and exhaustion
+
+Prefer over-coverage to early stop. A long recon run (hours) is expected and valuable; time is not a stopping criterion.
+
+- Exhaust a stage by yield, not by clock: continue a collection stage while it produces new unique candidates (hosts, endpoints, parameters, schemas, signals, versions). Stop a stage only when its marginal yield reaches zero across all sources, a hard program rate limit requires a pause, or the allowlist is fully covered.
+- Checkpoint and resume: deterministic filenames and structured outputs let a stage pause and resume without repeating traffic. Set checkpoint intervals (for example hourly) and always resume unfinished stages; a crashed or interrupted stage is a continuation point, not a stop.
+- Sweep the scope before concluding: after a finding is terminal (reportable, verified, refuted, or per-target blocked), return to the next untested in-scope surface and repeat the stages. The engagement ends only when no in-scope surface remains and no source yields new coverage.
+- Per-thread failure limits: change technique after repeated identical failures while keeping the thread open; abandon a thread only on evidence-based refutation. A blocker on one thread does not stop the other threads or targets.
+
 ## Decision rules
 
 - Missing tool: record the capability gap; use an equivalent or a small reviewed script.

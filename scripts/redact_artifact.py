@@ -12,9 +12,9 @@ from pathlib import Path
 
 
 PATTERNS = [
-    ("authorization", re.compile(r"(?im)^((?:proxy-)?authorization\s*:\s*)(?:bearer|token|basic)\s+\S+"), r"\1<REDACTED>"),
-    ("cookie", re.compile(r"(?im)^(cookie|set-cookie)\s*:\s*[^\r\n]+"), r"\1: <REDACTED>"),
-    ("api_header", re.compile(r"(?im)^((?:x-)?(?:api[-_]key|auth[-_]token|access[-_]token|private[-_]token)\s*:\s*)[^\r\n]+"), r"\1<REDACTED>"),
+    ("authorization", re.compile(r"(?im)^(\s*)((?:proxy-)?authorization\s*:\s*)(?:bearer|token|basic)\s+\S+"), r"\1\2<REDACTED>"),
+    ("cookie", re.compile(r"(?im)^(\s*)(cookie|set-cookie)\s*:\s*[^\r\n]+"), r"\1\2: <REDACTED>"),
+    ("api_header", re.compile(r"(?im)^(\s*)((?:x-)?(?:api[-_]key|auth[-_]token|access[-_]token|private[-_]token)\s*:\s*)[^\r\n]+"), r"\1\2<REDACTED>"),
     (
         "named_secret",
         re.compile(
@@ -22,15 +22,25 @@ PATTERNS = [
         ),
         r"\1<REDACTED>",
     ),
+    (
+        "json_secret_key",
+        re.compile(r'(?i)(["\'](?:token|cookie|authorization|auth|bearer|session[-_]?id|client[-_]?secret|secret|api[-_]?key)["\']\s*:\s*)("[^"]*"|\'[^\']*\'|[^,}\s]+)'),
+        r"\1<REDACTED>",
+    ),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"), "<REDACTED-JWT>"),
-    ("url_password", re.compile(r"(?i)(https?://[^:/@\s]+:)[^@/\s]+@"), r"\1<REDACTED>@"),
+    ("url_password", re.compile(r"(?i)([a-z][a-z0-9+.-]*://[^:/@\s]+:)[^@/\s]+@"), r"\1<REDACTED>@"),
     ("aws_access_key", re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"), "<REDACTED-AWS-ACCESS-KEY>"),
+    ("aws_secret_value", re.compile(r'(?i)(\baws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*)(?:["\'][^"\']*["\']|[^&\s,}]+)'), r"\1<REDACTED>"),
+    ("aws_session_token", re.compile(r'(?i)(\baws[_-]?session[_-]?token\s*[:=]\s*)(?:["\'][^"\']*["\']|[^&\s,}]+)'), r"\1<REDACTED>"),
     ("github_token", re.compile(r"\bgh[opusr]_[A-Za-z0-9]{20,255}\b"), "<REDACTED-GITHUB-TOKEN>"),
+    ("github_fine_grained_token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,255}\b"), "<REDACTED-GITHUB-TOKEN>"),
     ("gitlab_token", re.compile(r"\bglpat-[A-Za-z0-9_-]{20,255}\b"), "<REDACTED-GITLAB-TOKEN>"),
+    ("gitlab_ci_token", re.compile(r"\bglcbt-[A-Za-z0-9_-]{20,255}\b"), "<REDACTED-GITLAB-TOKEN>"),
     ("slack_token", re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,255}\b"), "<REDACTED-SLACK-TOKEN>"),
     ("stripe_key", re.compile(r"\b(?:sk|rk)_live_[A-Za-z0-9]{16,255}\b"), "<REDACTED-STRIPE-KEY>"),
     ("google_api_key", re.compile(r"\bAIza[A-Za-z0-9_-]{30,50}\b"), "<REDACTED-GOOGLE-API-KEY>"),
-    ("private_key", re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----.*?-----END [^-]*PRIVATE KEY-----", re.DOTALL), "<REDACTED-PRIVATE-KEY>"),
+    ("npm_token", re.compile(r"\bnpm_[A-Za-z0-9_]{20,255}\b"), "<REDACTED-NPM-TOKEN>"),
+    ("private_key", re.compile(r"-----BEGIN [^-]*PRIVATE KEY(?: BLOCK)?-----.*?-----END [^-]*PRIVATE KEY(?: BLOCK)?-----", re.DOTALL), "<REDACTED-PRIVATE-KEY>"),
 ]
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 

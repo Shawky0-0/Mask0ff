@@ -17,7 +17,14 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    data = json.loads(args.matrix.read_text(encoding="utf-8-sig"))
+    if not args.matrix.is_file():
+        parser.error(f"matrix is not a file: {args.matrix}")
+    try:
+        data = json.loads(args.matrix.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as error:
+        parser.error(f"matrix is not valid JSON: {error}")
+    if not isinstance(data, dict):
+        parser.error("matrix must be a JSON object")
     errors: list[str] = []
     warnings: list[str] = []
     if data.get("schema_version") != 1:
@@ -29,11 +36,17 @@ def main() -> int:
         errors.append("ordering must be oldest-to-newest")
 
     releases = data.get("releases", [])
+    if not isinstance(releases, list):
+        errors.append("releases must be a list")
+        releases = []
     seen: set[str] = set()
     prior_date = ""
     transitions = []
     prior_result = None
     for index, release in enumerate(releases):
+        if not isinstance(release, dict):
+            errors.append(f"release {index} must be an object")
+            continue
         label = str(release.get("version") or release.get("commit") or "").strip()
         if not label:
             errors.append(f"release {index}: version or commit is required")

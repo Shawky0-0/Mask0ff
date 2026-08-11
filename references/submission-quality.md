@@ -22,6 +22,8 @@ Do not use high-severity labels as substitutes for evidence. In particular:
 - State the attacker role and every configuration precondition early.
 - State the black-, gray-, white-, or hybrid-box assessment mode and the source/deployment mapping when source is used.
 - Name only controlled session labels, roles, and tenants; never include credential values, Authorization headers, cookies, signed URLs, or private keys.
+- Reproduction must start from a realistic attacker position: the steps must not depend on root, ADB, physical access, MITM, VNC, debuggers, runtime instrumentation, internal network access, or researcher tooling. Discovery tools find the bug; they cannot become fake attacker prerequisites. `report` enforces this.
+- For access-control findings, include the object-ownership matrix: which request created the object, which account owns it, which accounts should access it, and the observed access under the tested account.
 - Separate observed impact from bounded potential impact.
 - Include the baseline, changed variable, vulnerable result, negative control, repeat, and fix control.
 - Include the X1 independence mode, discovery and validator ownership separation, blind-packet hash, separate reproduction/control evidence, challenged alternatives, chain review, and environmental limitations.

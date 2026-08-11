@@ -13,7 +13,7 @@ from pathlib import Path, PurePosixPath
 
 
 EXCLUDED_PARTS = {"__pycache__", ".git", ".pytest_cache"}
-EXCLUDED_SUFFIXES = {".pyc", ".pyo", ".tmp"}
+EXCLUDED_SUFFIXES = {".pyc", ".pyo", ".tmp", ".new", ".rollback"}
 SKILL_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 

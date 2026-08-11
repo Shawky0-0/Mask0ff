@@ -8,6 +8,7 @@ import base64
 import fnmatch
 import hashlib
 import json
+import re
 import os
 import sys
 from datetime import datetime, timezone
@@ -117,6 +118,21 @@ def scope_item(
     }
 
 
+def as_bool(value: Any, *, default: bool) -> bool:
+    """Interpret export booleans safely: real bools, strings 'true'/'false', 0/1."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "y", "on", "eligible"}:
+            return True
+        if normalized in {"false", "0", "no", "n", "off", "not-eligible", "ineligible"}:
+            return False
+    return default
+
+
 def base_profile(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema_version": 1,
@@ -188,7 +204,7 @@ def import_hackerone(data: Any) -> tuple[list[dict[str, Any]], list[dict[str, An
         item = scope_item(
             identifier,
             asset_type=str(attributes.get("asset_type", "OTHER")),
-            eligible_for_submission=bool(attributes.get("eligible_for_submission", False)),
+            eligible_for_submission=as_bool(attributes.get("eligible_for_submission", False), default=False),
             eligible_for_bounty=attributes.get("eligible_for_bounty") if isinstance(attributes.get("eligible_for_bounty"), bool) else None,
             max_severity=str(attributes.get("max_severity", "")),
             instruction=str(attributes.get("instruction", "")),
@@ -246,7 +262,7 @@ def import_generic(data: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]
                 item = scope_item(
                     str(row["identifier"]),
                     asset_type=str(row.get("asset_type", "OTHER")),
-                    eligible_for_submission=bool(row.get("eligible_for_submission", True)),
+                    eligible_for_submission=as_bool(row.get("eligible_for_submission", True), default=True),
                     eligible_for_bounty=row.get("eligible_for_bounty") if isinstance(row.get("eligible_for_bounty"), bool) else None,
                     max_severity=str(row.get("max_severity", "")),
                     instruction=str(row.get("instruction", "")),
@@ -520,7 +536,15 @@ def export_authorization(args: argparse.Namespace) -> int:
     profile = load_json(profile_path)
     if not isinstance(profile, dict):
         raise ValueError("profile must be a JSON object")
-    errors, warnings = validate_profile(profile)
+    requested_actions = list(args.allowed_action or ["standard-safe-testing"])
+    allowed_groups = {str(value).strip().lower() for value in profile.get("allowed_action_groups", [])}
+    for action in requested_actions:
+        if action.lower().strip() not in allowed_groups:
+            raise ValueError(
+                f"allowed action {action!r} is not covered by the profile's allowed_action_groups: "
+                f"{', '.join(sorted(allowed_groups)) or 'none'}"
+            )
+    errors, warnings = validate_profile(profile, action_group=requested_actions[0])
     if errors:
         raise ValueError("; ".join(errors))
     receipt = {
@@ -538,7 +562,7 @@ def export_authorization(args: argparse.Namespace) -> int:
         "out_of_scope_targets": [
             row["identifier"] for row in profile.get("out_of_scope", []) if isinstance(row, dict)
         ],
-        "allowed_actions": list(args.allowed_action or ["standard-safe-testing"]),
+        "allowed_actions": requested_actions,
         "allowed_action_groups": list(profile.get("allowed_action_groups", [])),
         "prohibited_actions": list(profile.get("prohibited_actions", DEFAULT_PROHIBITED)),
         "rate_limits": list(profile.get("rate_limits", [])),
@@ -555,6 +579,115 @@ def export_authorization(args: argparse.Namespace) -> int:
     atomic_write(args.output.resolve(), receipt)
     print(json.dumps({"path": str(args.output.resolve()), "warnings": warnings, "receipt": receipt}, indent=2))
     return 0
+
+
+def validate_program_threat_model(model: Any) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if not isinstance(model, dict):
+        errors.append("program threat model must be a JSON object")
+        return errors, warnings
+    if model.get("schema_version") != 1 or model.get("kind") != "mask0ff-program-threat-model":
+        errors.append("program threat model schema or kind is invalid")
+    for field in ("platform", "program_or_owner"):
+        if not str(model.get(field, "")).strip():
+            errors.append(f"{field} is required")
+    if not isinstance(model.get("security_boundary_classes"), list) or not model["security_boundary_classes"]:
+        errors.append("security_boundary_classes must not be empty: what the vendor treats as a boundary")
+    for collection, label in (
+        ("excluded_classes", "excluded_classes"),
+        ("documented_design_behaviors", "documented_design_behaviors"),
+        ("prior_triage_decisions", "prior_triage_decisions"),
+        ("accepted_classes", "accepted_classes"),
+    ):
+        if collection in model and not isinstance(model[collection], list):
+            errors.append(f"{label} must be a list")
+    for behavior in model.get("documented_design_behaviors", []) if isinstance(model.get("documented_design_behaviors"), list) else []:
+        if not isinstance(behavior, dict):
+            errors.append("documented_design_behaviors entries must be objects")
+            continue
+        if not str(behavior.get("behavior", "")).strip():
+            errors.append("documented_design_behaviors entry requires a behavior description")
+        if not str(behavior.get("documentation", "")).strip():
+            warnings.append("documented_design_behaviors entry lacks a documentation reference")
+    for decision in model.get("prior_triage_decisions", []) if isinstance(model.get("prior_triage_decisions"), list) else []:
+        if not isinstance(decision, dict):
+            errors.append("prior_triage_decisions entries must be objects")
+            continue
+        for field in ("report_id", "class", "verdict"):
+            if not str(decision.get(field, "")).strip():
+                errors.append(f"prior_triage_decisions entry requires {field}")
+        if decision.get("verdict") not in {"accepted", "duplicate", "informative", "needs-more-info", "rejected"}:
+            errors.append("prior_triage_decisions verdict is invalid")
+    if not isinstance(model.get("consent_semantics"), str):
+        errors.append("consent_semantics must be a string describing which admin config is intentionally loosenable")
+    return errors, warnings
+
+
+def threat_model_check(args: argparse.Namespace) -> int:
+    model = json.loads(args.model.read_text(encoding="utf-8-sig"))
+    errors, warnings = validate_program_threat_model(model)
+    if errors:
+        raise ValueError("; ".join(errors))
+    claimed_class = str(args.class_name or "").strip().lower()
+    check = {
+        "schema_version": 1,
+        "status": "pass" if not errors else "blocked",
+        "platform": model.get("platform"),
+        "program_or_owner": model.get("program_or_owner"),
+        "security_boundary_classes": model.get("security_boundary_classes"),
+        "errors": errors,
+        "warnings": warnings,
+    }
+    if claimed_class:
+        excluded = {str(item).lower() for item in model.get("excluded_classes", [])}
+        designs = {str(item.get("behavior", "")).lower() for item in model.get("documented_design_behaviors", []) if isinstance(item, dict)}
+        accepted = {str(item).lower() for item in model.get("accepted_classes", [])}
+        prior = {}
+        for decision in model.get("prior_triage_decisions", []) if isinstance(model.get("prior_triage_decisions"), list) else []:
+            if isinstance(decision, dict) and str(decision.get("class", "")).strip():
+                prior[str(decision["class"]).strip().lower()] = decision.get("verdict", "")
+        class_tokens = {token for token in re.split(r"[^a-z0-9]+", claimed_class) if len(token) > 2}
+        design_match = any(
+            claimed_class in design
+            or any(token in design and token not in {"working", "as", "designed"} for token in class_tokens)
+            for design in designs
+        )
+        prior_rejected = any(
+            prior_class == claimed_class or any(token in prior_class for token in class_tokens)
+            for prior_class, verdict in prior.items()
+            if verdict in {"informative", "rejected"}
+        )
+        prior_accepted = any(
+            prior_class == claimed_class or any(token in prior_class for token in class_tokens)
+            for prior_class, verdict in prior.items()
+            if verdict == "accepted"
+        )
+        if claimed_class in excluded or design_match or prior_rejected:
+            check["class_assessment"] = {
+                "status": "likely-informative",
+                "reason": "the claimed class is excluded, documented as working-as-designed, or previously rejected for this program",
+                "prior_verdicts": {key: value for key, value in prior.items() if key == claimed_class or any(token in key for token in class_tokens)},
+            }
+        elif claimed_class in accepted or prior_accepted:
+            check["class_assessment"] = {
+                "status": "likely-accepted",
+                "reason": "the claimed class has historical acceptance for this program",
+                "prior_verdicts": {key: value for key, value in prior.items() if key == claimed_class or any(token in key for token in class_tokens)},
+            }
+        else:
+            check["class_assessment"] = {
+                "status": "unknown",
+                "reason": "no prior art for this class in the program threat model; research the vendor threat model before deep validation",
+            }
+        check["targeted_class"] = claimed_class
+    result = {
+        "status": "pass" if not errors else "blocked",
+        "threat_model": check,
+        "caveat": "This is triage prior art, not a verdict; run the J1 rejection matrix before any report.",
+    }
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 1 if errors else 0
 
 
 def compare_profiles(args: argparse.Namespace) -> int:
@@ -684,6 +817,16 @@ def build_parser() -> argparse.ArgumentParser:
     diff.add_argument("old", type=Path)
     diff.add_argument("new", type=Path)
     diff.set_defaults(handler=compare_profiles)
+
+    threat_model = subparsers.add_parser(
+        "threat-model",
+        help="Check a claimed vulnerability class against the program's recorded threat model (excluded classes, documented design, prior triage decisions).",
+    )
+    threat_model.add_argument("model", type=Path, help="Program threat-model JSON")
+    threat_model.add_argument("--class-name", dest="class_name", help="Claimed vulnerability class to assess")
+    threat_model.add_argument("--platform")
+    threat_model.add_argument("--program")
+    threat_model.set_defaults(handler=threat_model_check)
     return parser
 
 

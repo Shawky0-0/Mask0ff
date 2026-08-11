@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-real-world-outcomes",
+  "note": "Permanent regression tests derived from real vendor triage decisions. Each case must keep producing the expected gate errors and triage rejection; if a case starts passing, the workflow regressed.",
+  "cases": [
+    {
+      "id": "anthropic-3897643-sdk-clone",
+      "program": "Anthropic",
+      "platform": "hackerone",
+      "vulnerability_class": "sdk-config-correctness",
+      "verdict": "informative",
+      "vendor_reason": "outside threat model; no attacker-controllable component; functional correctness item",
+      "signals": ["no-attacker-control", "functional-correctness-only"],
+      "gate_requirements": ["A0", "T1"],
+      "record_patch": {
+        "threat_model.attacker_controls": [],
+        "threat_model.attacker_control_evidence": []
+      },
+      "expected_gate_errors": ["T1 requires at least one concrete attacker-controlled input"],
+      "triage_review": {
+        "applies": "no-attacker-control",
+        "final": "reject",
+        "classification": "insufficient-attacker-control",
+        "expected_status": "fail"
+      }
+    },
+    {
+      "id": "anthropic-3926898-mcp-visibility",
+      "program": "Anthropic",
+      "platform": "hackerone",
+      "vulnerability_class": "mcp-tool-authorization",
+      "verdict": "informative",
+      "vendor_reason": "working as designed; App and server are the same trust principal; no security boundary",
+      "signals": ["same-trust-principal", "working-as-designed"],
+      "gate_requirements": ["A0", "T1"],
+      "record_patch": {
+        "threat_model.trust_principals": ["mcp-app-and-server-same-principal"],
+        "threat_model.security_contract.statement": ""
+      },
+      "expected_gate_errors": ["T1 requires a security-contract statement"],
+      "triage_review": {
+        "applies": "same-trust-principal",
+        "final": "reject",
+        "classification": "insufficient-security-impact",
+        "expected_status": "fail"
+      }
+    },
+    {
+      "id": "anthropic-3926935-m365-send-tools",
+      "program": "Anthropic",
+      "platform": "hackerone",
+      "vulnerability_class": "approval-policy-classification",
+      "verdict": "informative",
+      "vendor_reason": "working as designed; documented tool set; admin pre-approval intentional; impact not demonstrated against a live tenant",
+      "signals": ["working-as-designed", "potential-impact-only", "accepted-risk-or-documented-policy"],
+      "gate_requirements": ["A0", "I1"],
+      "record_patch": {
+        "impact_model.demonstrated_effects": [],
+        "impact_model.attacker_gain": ""
+      },
+      "expected_gate_errors": ["I1 requires at least one directly demonstrated security effect"],
+      "triage_review": {
+        "applies": "working-as-designed",
+        "final": "reject",
+        "classification": "working-as-designed",
+        "expected_status": "fail"
+      }
+    }
+  ]
+}

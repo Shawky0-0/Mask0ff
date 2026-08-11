@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "mask0ff-triage-review",
+  "candidate_id": "",
+  "discovery_owner": "",
+  "reviewer_owner": "",
+  "reviewed_at_utc": "",
+  "current_version_checked": false,
+  "security_contract_checked": false,
+  "attacker_control_checked": false,
+  "authority_delta_checked": false,
+  "rejection_tests": [
+    {
+      "id": "working-as-designed",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "explicit-user-or-admin-consent",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "same-trust-principal",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "no-attacker-control",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "equivalent-authority",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "stale-or-fixed-current-version",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "functional-correctness-only",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "unrealistic-or-self-imposed-precondition",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "no-security-contract",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "potential-impact-only",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "accepted-risk-or-documented-policy",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    },
+    {
+      "id": "duplicate-or-known-issue",
+      "status": "unknown",
+      "rationale": "",
+      "evidence": []
+    }
+  ],
+  "final_verdict": "needs-more-evidence",
+  "classification": "needs-more-evidence",
+  "reason": ""
+}

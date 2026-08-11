@@ -1,4 +1,4 @@
 interface:
   display_name: "mask0ff Security Research"
-  short_description: "Tool-led research with independent validation"
-  default_prompt: "Use $mask0ff to import this scope, inventory the available research toolchain, learn relevant prior methods, investigate adaptive hypotheses, and keep every candidate unverified until a separate X1 validator reproduces it."
+  short_description: "Tool-led research with adversarial validation"
+  default_prompt: "Use $mask0ff to import authorized scope, map attacker-controlled trust transitions, run tool-led research, and require independent X1 reproduction plus adversarial J1 triage before reporting."

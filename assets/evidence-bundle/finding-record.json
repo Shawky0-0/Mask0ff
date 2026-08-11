@@ -45,6 +45,7 @@
   "gates": {
     "A0": {"status": "pending", "evidence": [], "reason": ""},
     "A1": {"status": "pending", "evidence": [], "reason": ""},
+    "T1": {"status": "pending", "evidence": [], "reason": ""},
     "H1": {"status": "pending", "evidence": [], "reason": ""},
     "B1": {"status": "pending", "evidence": [], "reason": ""},
     "P1": {"status": "pending", "evidence": [], "reason": ""},
@@ -52,11 +53,59 @@
     "R1": {"status": "pending", "evidence": [], "reason": ""},
     "X1": {"status": "pending", "evidence": [], "reason": ""},
     "I1": {"status": "pending", "evidence": [], "reason": ""},
+    "E1": {"status": "pending", "evidence": [], "reason": ""},
     "S1": {"status": "pending", "evidence": [], "reason": ""},
     "V1": {"status": "pending", "evidence": [], "reason": ""},
     "F1": {"status": "pending", "evidence": [], "reason": ""},
+    "J1": {"status": "pending", "evidence": [], "reason": ""},
     "D1": {"status": "pending", "evidence": [], "reason": ""},
     "Q1": {"status": "pending", "evidence": [], "reason": ""}
+  },
+  "threat_model": {
+    "attacker_actor": "",
+    "victim_actor": "",
+    "attacker_principal": "",
+    "victim_principal": "",
+    "attacker_controls": [],
+    "attacker_does_not_control": [],
+    "required_victim_actions": [],
+    "required_admin_actions": [],
+    "trust_principals": "",
+    "security_contract": {"statement": "", "evidence": []},
+    "consent_analysis": "",
+    "authority_delta": {
+      "capabilities_before": [],
+      "capabilities_after": [],
+      "protected_property": "",
+      "boundary_crossed": false,
+      "equivalent_authority_already_held": false,
+      "evidence": []
+    },
+    "attacker_control_evidence": [],
+    "trust_model_evidence": []
+  },
+  "freshness": {
+    "status": "",
+    "tested_version": "",
+    "current_supported_version": "",
+    "submission_relevance": "",
+    "evidence": []
+  },
+  "impact_model": {
+    "demonstrated_effects": [],
+    "bounded_inferences": [],
+    "attacker_gain": "",
+    "victim_loss": "",
+    "preconditions": [],
+    "blast_radius": "",
+    "counterfactual_if_fixed": "",
+    "evidence": []
+  },
+  "classification": {"status": "", "reason": "", "evidence": []},
+  "owner_matrix": {
+    "attacker_account": "",
+    "victim_account": "",
+    "entries": []
   },
   "evidence": [],
   "runs": [],

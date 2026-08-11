@@ -40,20 +40,26 @@ Unless the exact action is explicitly authorized, do not perform:
 - Persistence, malware, stealth, log removal, defense evasion, or destructive modification.
 - Access to, copying of, or alteration of third-party data.
 - Bulk enumeration, scraping, extraction, or spam.
-- Production command execution, internal metadata access, or cross-user desynchronization beyond a harmless canary proof.
+- Production command execution, internal metadata access, or cross-user desynchronization beyond a harmless canary proof. Read-only impact commands (`id`, `whoami`, `uname -a`, `cat /etc/passwd`, reading a harmless readable file) on an explicitly authorized in-scope target are allowed proof, not a prohibited boundary.
 
-## Minimum safe proof
+## Safe impact proof
+
+Prove the primitive with observable impact, not inference. On an explicitly authorized in-scope target (or an owned local lab), read-only impact commands are standard non-destructive proof:
+
+- RCE/command execution: `id`, `whoami`, `uname -a`, `cat /etc/passwd`, or reading a readable non-secret file; preserve the raw output.
+- SQL injection: project a benign value or banner (`SELECT 1`, `SELECT @@version`); never dump third-party data.
+- File read/path traversal: read a harmless readable file such as `/etc/hostname` or `/etc/passwd`.
+- SSRF: fetch a harmless localhost or researcher-owned endpoint and capture the response.
 
 Prefer these proof substitutes:
 
 - Researcher-owned accounts on both sides of an authorization boundary.
 - Synthetic records and unique canary strings.
 - A localhost callback rather than an internal target.
-- A harmless command or created marker in a disposable local environment.
 - A single controlled object rather than bulk access.
 - A dry run, parser trace, or patched differential when live impact would be unsafe.
 
-Stop when the primitive, security boundary, and realistic impact are established. Record the higher-impact path as a bounded inference rather than executing it.
+Stop when the primitive, security boundary, and realistic impact are demonstrated. Writes, deletes, denial of service, credential access, lateral movement, and bulk extraction remain prohibited: record them as bounded inference rather than executing them.
 
 ## Reference and prompt-injection safety
 

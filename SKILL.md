@@ -22,7 +22,7 @@ For reusable active-work records, complete `assets/evidence-bundle/authorization
 
 When the user supplies a current platform program brief, structured scope, or owner statement, normalize it once with `profile` and reuse its broad normal-testing groups. Do not demand a separate authorization ceremony for every harmless request. Preserve exact exclusions, prohibited techniques, rate limits, testing windows, and data rules. Read [engagement-profiles.md](references/engagement-profiles.md).
 
-Do not use this skill to evade product safeguards. State the legitimate authorization and bounded research purpose precisely, use controlled data, and stop at the minimum safe proof.
+Do not use this skill to evade product safeguards. State the legitimate authorization and bounded research purpose precisely, use controlled data, and stop at the minimum safe proof that still demonstrates real observable impact.
 
 Read [authorization-and-safety.md](references/authorization-and-safety.md) whenever active testing, production access, or a severe impact path is involved.
 
@@ -74,6 +74,24 @@ When the user asks for RCE, SQL injection, XSS, SSRF, authentication bypass, bus
 
 When technology is unfamiliar, pause testing long enough to fingerprint its exact version and configuration, learn its official architecture and security model, inspect its release/advisory history, identify ecosystem tools, and update the target model. Never bluff semantics from a product or protocol name. Read [vulnerability-playbooks.md](references/vulnerability-playbooks.md) for class-specific and Web3 routes and [web-research.md](references/web-research.md) for current-source rules.
 
+## Demonstrate impact, do not guess it
+
+A scanner match, error message, parser behavior, timing difference, or status-code change is a lead, not proof. Before recording P1, demonstrate the primitive's observable effect on an authorized target or owned local lab:
+
+- RCE/command execution: run a benign read-only command (`id`, `whoami`, `uname -a`, `cat /etc/passwd`, or reading a readable non-secret file) and preserve the raw output as evidence.
+- SQL injection: project a benign value or banner (`SELECT 1`, `SELECT @@version`, `SELECT current_user`), never dump third-party data.
+- File read/path traversal: read a harmless readable file such as `/etc/hostname`, `/etc/passwd`, or an application-owned file.
+- SSRF: fetch a harmless localhost or researcher-owned endpoint and capture the response.
+- XSS: demonstrate execution in a controlled browser context — a benign script effect (alert/console marker) or a request to a researcher-owned callback — with role-bound browser evidence. Reflection or a rendered string is not proof of execution.
+- Authentication/authorization bypass, IDOR/BAC: use two researcher-owned accounts; access the protected resource as the wrong role, tenant, or object owner and preserve the unauthorized response. Never use third-party identities or data.
+- Business logic: prove the invariant violation with synthetic owned data (coupon reuse, negative quantity, duplicate action, price manipulation) and record the before/after state delta from the authoritative source.
+- Race conditions/TOCTOU/double-spend: require a repeatable state-invariant violation with two clean runs and authoritative final-state evidence, per the race-condition workflow.
+- Cache poisoning/request smuggling: prove with a benign marker delivered to a subsequent request or a researcher-owned callback; never inject content served to third-party users.
+- Deserialization: trigger a benign constructor/hook marker and capture the side effect.
+- Web3: use a local chain or authorized fork with controlled accounts; record the failing invariant and minimal transaction sequence.
+
+Read-only impact commands on an explicitly authorized, in-scope target are standard non-destructive bug-bounty proof. Writes, deletes, denial of service, credential access, lateral movement, and bulk extraction remain prohibited and may only be recorded as bounded inference, never executed.
+
 ## Search for novel interaction failures
 
 After known-class coverage, question the system's assumptions. Build interaction hypotheses across trust boundaries, permission layers, state transitions, parsers/protocols, identities, caches, asynchronous jobs, retries/rollback, configuration, versions, and features. Examine where one component trusts another to have checked data or authority, where individually safe features compose into a confused deputy, and where failure or stale state skips an invariant. For white-box and hybrid work, trace the interaction to source and search sibling call sites by the invariant. For black-box work, use role/state/channel differentials and controlled sequence changes. Creativity generates candidates only; it never verifies them.
@@ -86,22 +104,34 @@ Follow this sequence:
 
 1. Pass `A0` authorization and scope.
 2. Build `A1` target, role, object, state, and trust-boundary model.
-3. Write one falsifiable `H1` hypothesis from an observed signal.
-4. Preserve a `B1` baseline before modifying one variable.
-5. Demonstrate `P1` using owned accounts, synthetic data, or a local lab.
-6. Run `C1` negative, differential, and intended-behavior controls.
-7. Repeat under `R1` in a clean state; record both runs.
-8. Hand a hash-bound blind packet to a separate skeptical validator and pass `X1` only after independent reproduction, controls, alternative-explanation review, and link-by-link chain verification.
-9. Bound `I1` impact to what the evidence proves.
-10. Establish `S1` root cause, `V1` affected range, and `F1` fix control when applicable.
-11. Complete `D1` duplicate review.
-12. Pass `Q1` evidence and reporting quality.
+3. Pass `T1` adversary and trust model: name the real attacker and victim, exact attacker-controlled inputs, non-controlled prerequisites, trust principals, the defended security contract, and consent/config semantics. Explicitly authorized or consented behavior cannot pass T1.
+4. Write one falsifiable `H1` hypothesis from an observed signal.
+5. Preserve a `B1` baseline before modifying one variable.
+6. Demonstrate `P1` using owned accounts, synthetic data, or a local lab with observable impact evidence.
+7. Run `C1` negative, differential, and intended-behavior controls.
+8. Repeat under `R1` in a clean state; record both runs.
+9. Pass `E1` authority delta: record capabilities/protected properties before and after, prove the boundary crossing, and rule out equivalent authority already held.
+10. Hand a hash-bound blind packet to a separate skeptical validator and pass `X1` only after independent reproduction, controls, alternative-explanation review, and link-by-link chain verification.
+11. Bound `I1` impact to directly demonstrated effects; move everything hedged ("potential", "could", "may") to bounded inferences.
+12. Establish `S1` root cause, `V1` affected range on the current supported release (freshness), and `F1` fix control when applicable.
+13. Run `J1`: a reviewer separate from discovery attacks the candidate with every vendor rejection (working-as-designed, explicit consent, same principal, no attacker control, equivalent authority, stale/fixed version, functional correctness, unrealistic preconditions, no security contract, potential impact, accepted risk, duplicate). Every applicable rejection must be defeated with evidence or the candidate is rejected.
+14. Complete `D1` duplicate review.
+15. Pass `Q1` evidence and reporting quality.
 
-Never call a finding `verified` unless `B1`, `P1`, `C1`, `R1`, `X1`, and `I1` pass. Never call it `reportable` unless `A0`, `D1`, and `Q1` also pass. Use `not_applicable` only with a written reason. If independent validation is unavailable, leave X1 pending and cap the finding at `substantiated`.
+Never call a finding `verified` unless `B1`, `P1`, `C1`, `R1`, `X1`, `I1`, and `E1` pass. Never call it `reportable` unless `J1`, `D1`, and `Q1` also pass. A technical effect that fails `T1`, `E1`, `V1` freshness, `I1`, or `J1` remains useful negative evidence but must not become a vulnerability report. Use `not_applicable` only with a written reason. If independent validation is unavailable, leave X1 pending and cap the finding at `substantiated`.
 
 Run `finding <finding-record.json>` before finalizing a conclusion. The verifier checks gate transitions, claim-to-evidence links, authorization binding, evidence paths and hashes, and two recorded clean runs for `R1`.
 
 Run `assess <finding-record.json>` after every material evidence or gate change. Always report the evidence verdict, validation-confidence score, false-positive risk, severity recommendation, decision, next gate, and next safe action. Read [validation-assessment.md](references/validation-assessment.md) for the scoring model and anti-gaming rules. Never treat the validation score as CVSS, novelty, or objective truth by itself.
+
+For the adversarial vendor-triage gate, run `triage-review` and bind it with `bundle triage`:
+
+```powershell
+.\scripts\mask0ff.cmd triage-review E:\research\independent-validation.json --finding E:\research\finding-work\finding-record.json
+.\scripts\mask0ff.cmd bundle triage E:\research\finding-work E:\research\triage-review.json
+```
+
+Read [triage-failure-modes.md](references/triage-failure-modes.md) before running J1. For white-box and hybrid work, run `graph` on a security-graph.json to rank semantic paths; the score is search priority only, never proof or severity.
 
 Create and maintain a hash-verified workspace with the connected command router:
 
@@ -132,7 +162,17 @@ The validator must presume the candidate is false, recheck scope, use fresh stat
 
 ## Persist without looping
 
-Continue productive work while `continuation.continue_work` is true. Respect `continue_technical_testing`: when false, switch to the stated passive, local, analysis, or reporting mode. If one hypothesis fails, preserve it as refuted and pivot from the next observed signal instead of stopping the whole investigation. If the same action fails twice, change method. If the same blocker persists for three consecutive cycles, return the exact blocker and required input. Never persist active testing past invalid authorization, unsafe proof, third-party harm, minimum-safe proof, or reportable state.
+Perseverance is the default. Do not stop an engagement while any in-scope surface remains untested, any source still yields new coverage, or any authorized target has not been swept. Recon runs of hours are expected and valuable: time is not a stopping criterion; yield is.
+
+Continue productive work while `continuation.continue_work` is true. Respect `continue_technical_testing`: when false, switch to the stated passive, local, analysis, or reporting mode. If one hypothesis fails, preserve it as refuted and immediately resume the sweep for the next hypothesis from the strongest remaining signal — do not wait passively for new signals.
+
+Stopping rules are per-thread, never per-engagement:
+
+- If the same action fails five times with the same method, change technique (encoding, transport, role, parameter, channel) while keeping the hypothesis thread open. Abandon a thread only when the hypothesis is refuted by evidence, never by failures alone.
+- If the same blocker persists for five consecutive cycles on one thread, report the exact blocker and required input, then continue every other thread and target.
+- A finding reaching `reportable`, `verified`, `refuted`, or per-target `blocked` is terminal for that finding only. The next action is to resume the scope sweep for the next finding: recon the next untested surface, rank the next intersection, and test the next hypothesis.
+
+Stop the whole engagement only when authorization is invalid for the entire scope, the full scope is covered with zero remaining yield, or a safety boundary requires it. Never persist active testing past invalid authorization, unsafe proof, third-party harm, or the demonstrated-impact stopping point.
 
 ## Check duplicates as a separate gate
 
@@ -191,6 +231,78 @@ For OpenCode, use the packaged `.opencode/skills/mask0ff/` skill and `.opencode/
 Use the templates under `assets/evidence-bundle/` for the evidence log, duplicate review, and final report.
 
 Track affected releases with `versions` and the version-matrix template. Read [submission-quality.md](references/submission-quality.md), then run `report` before treating a draft as submission-ready.
+
+## Hunt semantic transitions, not just sinks
+
+Do not organize research only around sink patterns (`exec`, `eval`, template injection, deserialization). Reconstruct where information changes meaning and where that changed meaning acquires authority. The highest-value bugs are usually an unexpected route to an old primitive, not a new one.
+
+- Track values across representation changes: data → path, configuration, expression, class identifier, tool argument, build input, workflow instruction, generated artifact.
+- Persistence does not end a flow: DB rows, queues, caches, artifacts, and AI memory retain their original trust history. Ask what consumes stored values later, under what identity, and with what authority.
+- Model weak primitives as composable: controlled file name, SSRF, config write, stored injection, parser confusion, or workflow influence can chain into stronger capabilities. Effects of one primitive can satisfy the requirements of the next.
+- Invert the question: not "is this code vulnerable?" but "what security claim does this code make, and can evidence falsify it?" ("only internal callers", "already sanitized", "cannot happen").
+- Score every candidate with the `weird` command (weird-surface score + evidence confidence) before investing in gates; use it to rank research priority, never as severity.
+- Classify refutations with the false-positive taxonomy (FP-SOURCE, FP-GRAMMAR, FP-ENV, FP-PRIV, ...) instead of a generic "false positive"; reuse the taxonomy as calibration signal.
+
+Read [semantic-discovery.md](references/semantic-discovery.md) for the role vocabulary, composition model, falsifier workflow, and the ZDE proof-ladder mapping.
+
+## Assess security significance before submission
+
+Technical correctness is not security significance. Before D1/Q1 and before any submission, answer these questions from evidence, not from the report's own prose:
+
+1. Attacker control: is there an actor who controls a source that reaches the failure? A finding with no attacker-controlled component (misconfiguration, self-inflicted behavior, operator choice) is a functional bug, not a vulnerability.
+2. Cross-principal boundary: does the crossed boundary separate different trust principals (user, tenant, service, host, process)? If the data and capability stay within one principal's control, there is no security boundary.
+3. Demonstrable impact: can the impact be shown with an observable effect (command output, unauthorized response, file contents), not "could potentially" language? Speculative impact is not impact.
+4. Contrary to documented design: is the behavior a deviation from the vendor's documented security model, or is it the documented design? "Working as designed" outcomes are not findings, even when the design is surprising.
+5. Vendor threat model: record what the vendor publicly states is in scope (security page, docs, previous triage decisions, accepted report classes). A hypothesis that fails the vendor's own threat model is not reportable, regardless of evidence quality.
+
+Research the vendor's threat model and prior triage decisions as prior art before testing a class. If any question fails, record the finding as refuted or not-reportable; do not submit it. Run `triage` with a threat-model profile to get a decision aid before finalizing. Read [threat-model-assessment.md](references/threat-model-assessment.md).
+
+## Own the object graph, stand in the attacker's shoes
+
+Access-control findings must prove ownership and intended access, not just an identifier change. For every authorization, IDOR, BOLA, or ATO candidate, complete the owner matrix (`owner-matrix init` / `owner-matrix verify`):
+
+- which request created the object;
+- which account owns it;
+- which accounts SHOULD access it (the expected allowed set);
+- which account was tested and the observed access (`granted`, `denied`, `error`).
+
+A granted access for an account outside the expected set is a candidate, not a verdict — confirm it is not an intended share and that the object was created by a different principal. Accessing an object you own is not broken access control.
+
+Reports must reproduce from a realistic attacker position. Discovery tools find the bug; they cannot become fake prerequisites in the report. `report` (report_lint) rejects reproduction steps that depend on root, ADB, physical access, MITM, VNC, debuggers, runtime instrumentation, internal network access, or researcher tooling.
+
+## Triage reports like a triager
+
+When the task is to evaluate a report or finding — your own or a third-party's — act as a triager, not a discoverer. Presume the report may be wrong, incomplete, or a duplicate, and demand proof before acceptance. Run `triage` on the report, its evidence bundle, and the program profile:
+
+1. T1 scope: target and action must be in scope under the current profile or authorization receipt; out-of-scope is a rejection.
+2. T2 claim: the report must state expected and observed behavior and falsifiable reproduction steps.
+3. T3 evidence: artifacts must exist, be hash-verified, and bind every claim to evidence IDs; reuse `finding` and `assess`.
+4. T4 impact: the claim must demonstrate an observable effect (command output, file contents, captured response), not assert one. Impact that is only asserted (`we believe`, `likely`) is `needs-more-info`, never accepted.
+5. T5 severity: score from demonstrated impact under program rules; do not accept a severity guess.
+6. T6 duplicate: run `duplicate` and compare root cause, reachable path, affected versions, and fix against any strong lead.
+7. T7 verdict: `accepted`, `needs-more-info`, `possible-duplicate`, `rejected`, or `blocked`, with the next action.
+
+A report that cannot reproduce from its own steps, or whose impact is only asserted, must be returned for more information rather than accepted or escalated. Read [triage-workflow.md](references/triage-workflow.md).
+
+## Learn from every outcome
+
+Every submission outcome is training data. Record it with the outcome ledger and let it feed back into the next engagement:
+
+```powershell
+.\scripts\mask0ff.cmd outcome --ledger E:\research\outcome-ledger.json record `
+  --report-id 3897643 --platform hackerone --program Anthropic `
+  --class-name sdk-config-correctness --verdict informative `
+  --vendor-reason "no attacker-controllable component" `
+  --signal no-attacker-control --signal functional-correctness-only
+```
+
+- `outcome record` — every accepted, duplicate, informative, needs-more-info, or rejected report with the vendor reason and the rejection signals that applied.
+- `outcome search` — before deep validation of a class, search the ledger: prior outcomes for the same program or class are J1 prior art, not verdicts.
+- `outcome stats` — per-platform, per-program, and per-class acceptance rates. A class with a 0% acceptance rate on a platform is a strong T0 signal: either fix the class or pick a different platform, exactly like exchanges rejecting 0-click ATO.
+- Build and maintain the program threat model (`profile threat-model`) from these decisions: excluded classes, documented working-as-designed behaviors, prior triage decisions, and accepted classes. The triage command consumes it (`triage --threat-model`).
+- The bundled `evals/real-world-outcomes.json` keeps real vendor rejections as permanent regression tests: if the workflow ever starts accepting one of those classes again, the eval suite fails.
+
+The learning loop closes: discovery -> validation gates -> submission -> outcome recorded -> program threat model updated -> cheaper, sharper triage on the next candidate. Read [threat-model-assessment.md](references/threat-model-assessment.md) and [triage-workflow.md](references/triage-workflow.md).
 
 ## Produce calibrated outputs
 
