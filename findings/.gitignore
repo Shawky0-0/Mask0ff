@@ -1,0 +1,20 @@
+# Updated 2026-08-12, second check.
+#
+# The repository was verified PRIVATE on 2026-08-12 by two independent routes:
+# an anonymous fetch returned HTTP 404, and `gh repo view` returned
+# "isPrivate": true. The earlier PUBLIC finding from the same morning is stale.
+#
+# The blanket block is therefore lifted. What replaces it is narrower and is
+# about content, not visibility: nothing carrying company context belongs in a
+# repository another person reads, private or not.
+#
+# NEVER commit these, whatever the repository visibility:
+ledger.md
+watchlist.md
+daily/
+*-ledger.md
+*-watchlist.md
+
+# Scratch
+.DS_Store
+Thumbs.db
