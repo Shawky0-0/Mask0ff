@@ -1,0 +1,53 @@
+# THE RULE THIS FILE FOLLOWS
+#
+# Ignore anything that holds a TARGET'S RESPONSE, a CREDENTIAL, or an
+# AUTHORISATION RECEIPT. Never ignore source or documentation.
+#
+# The two mistakes are opposite and both are real. Ignore too little and a
+# response body from a live system ends up in a commit and then in a push.
+# Ignore too much and real work is silently never committed and quietly lost.
+# When unsure, do not add a pattern here: move the output somewhere outside the
+# repository instead, which is safer than hoping a pattern matches.
+
+# Python bytecode. Running any script creates these, and without this file a
+# `git add -A` sweeps them into a commit.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# RUN OUTPUT. Per job working directories written by the sandbox, the usage
+# tracker and the runner. These hold the raw bytes fetched from whatever was
+# tested, plus step transcripts. They are output, never source.
+mask0ff-jobs/
+*-jobs/
+
+# USAGE LEDGERS and their signing keys. The key file is what makes the ledger's
+# tamper detection mean anything, so it never leaves the machine.
+usage-ledger.jsonl
+*.usage-key
+
+# --------------------------------------------------------------------------
+# DELIBERATELY NOT LISTED HERE, and this is a decision rather than an omission.
+#
+# Evidence bundles, authorisation receipts and scenario files all carry things
+# that must never be committed: a bundle holds the raw bytes fetched from the
+# target, a receipt names real hosts and what may be done to them, a scenario
+# names real paths. The obvious move is to add patterns for them. It was tried
+# on 2026-08-12 and reverted the same minute, because `*-bundle/` matched
+# `assets/evidence-bundle/`, which is the engine's OWN TEMPLATE DIRECTORY, and
+# `**/finding-record.json` matched the template every bundle is built from.
+# Ten tracked files were covered by an ignore rule that was meant to protect
+# run output. Nothing broke, because git does not untrack what is already
+# tracked, but delete and re add any of them and they vanish silently.
+#
+# THE LESSON: a pattern broad enough to catch every bundle is broad enough to
+# catch the engine's own files, and the failure is invisible.
+#
+# SO THE RULE IS PLACEMENT, NOT PATTERN. Bundles, receipts and scenarios are
+# written OUTSIDE this repository, in the vault under security/evidence/. Pass
+# --bundle and --scope paths that point there. A file that is never inside the
+# repository cannot be committed from it, and that holds without depending on
+# a glob being exactly right.
+#
+# Before committing here, run:  git status --short
+# and read every path. That habit catches more than this file ever will.

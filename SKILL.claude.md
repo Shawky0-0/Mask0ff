@@ -394,14 +394,14 @@ the technique directories that are in scope for this variant:
 
 | WordPress signal | Technique directory |
 |---|---|
-| REST API object access, `?author=` user enumeration, role and capability checks, privilege escalation via `wp_usermeta` | `techniques/02-access-control-bac-idor/` |
-| `wp-login.php` and XML-RPC brute force, application passwords, cookie and salt forgery, nonce handling, OAuth or SSO plugins | `techniques/03-authentication-session-oauth-jwt/` |
-| REST routes, AJAX (`admin-ajax.php`), CORS on API responses | `techniques/04-api-graphql-websocket-cors/` |
-| Stored, reflected, and DOM XSS in themes, plugins, comments, and the block editor; CSP | `techniques/05-client-side-browser/` |
-| SQL injection via `$wpdb`, unsafe unserialization of attacker-controlled `wp_options` data with a usable gadget chain, file upload that lands executable PHP in `uploads/`, path traversal in `download.php?file=` style handlers, SSRF in fetch features | `techniques/06-server-side-injection-file-data/` |
-| Nonce and workflow abuse, race conditions, order or state logic in plugins (for example WooCommerce) | `techniques/08-business-logic-race-operations/` |
-| Vulnerable, outdated, or abandoned plugins and themes; a plugin that changed hands | `techniques/09-components-supply-chain/` |
-| **Any AI or LLM surface in scope, not only a plugin**: a chat agent grounded on a site scrape, a RAG pipeline, an assistant with CRM or booking access, an AI feature inside a plugin or theme, or a model reachable through a webhook | `techniques/10-llm-web-security/` |
+| REST API object access, `?author=` user enumeration, role and capability checks, privilege escalation via `wp_usermeta` | `references/techniques/02-access-control-bac-idor/` |
+| `wp-login.php` and XML-RPC brute force, application passwords, cookie and salt forgery, nonce handling, OAuth or SSO plugins | `references/techniques/03-authentication-session-oauth-jwt/` |
+| REST routes, AJAX (`admin-ajax.php`), CORS on API responses | `references/techniques/04-api-graphql-websocket-cors/` |
+| Stored, reflected, and DOM XSS in themes, plugins, comments, and the block editor; CSP | `references/techniques/05-client-side-browser/` |
+| SQL injection via `$wpdb`, unsafe unserialization of attacker-controlled `wp_options` data with a usable gadget chain, file upload that lands executable PHP in `uploads/`, path traversal in `download.php?file=` style handlers, SSRF in fetch features | `references/techniques/06-server-side-injection-file-data/` |
+| Nonce and workflow abuse, race conditions, order or state logic in plugins (for example WooCommerce) | `references/techniques/08-business-logic-race-operations/` |
+| Vulnerable, outdated, or abandoned plugins and themes; a plugin that changed hands | `references/techniques/09-components-supply-chain/` |
+| **Any AI or LLM surface in scope, not only a plugin**: a chat agent grounded on a site scrape, a RAG pipeline, an assistant with CRM or booking access, an AI feature inside a plugin or theme, or a model reachable through a webhook | `references/techniques/10-llm-web-security/` |
 
 **The AI row was widened deliberately, 2026-08-11.** It previously read "a plugin that
 adds an AI or LLM feature (only then)", which made the corpus's 61KB of LLM security
@@ -420,6 +420,47 @@ objects without widening beyond the supplied target. `07-protocol-cache-routing/
 conditional; use it when a CDN, reverse proxy, cache, or routing layer is in scope.
 The corpus is a hypothesis source, not proof; verify current plugin, theme, and core
 behavior against current primary advisories and release sources.
+
+## The fleet's own rows on the semantic route checklist
+
+The route checklist in [semantic-discovery.md](references/semantic-discovery.md) is nine
+generic questions, and the weird source catalogue behind it is generic too. Neither names
+WordPress. The rows below are the WordPress and PHP transitions that actually exist on this
+fleet, so start here and reach for the generic list afterwards.
+
+**The bug shape this hunts is a value written at low authority and read at high authority.**
+Nobody guarded it going in, because at the moment it was written it genuinely was harmless.
+The damage happens somewhere else, later, where different code reads the same value and
+trusts it.
+
+| Where the value is written | Who reads it later, and at what authority |
+|---|---|
+| `postmeta` and `usermeta` | Written once at low authority, then re rendered later somewhere else entirely: an admin screen, an export, a template |
+| `wp_options` with `autoload` on | Configuration read on **every request**, by code that never saw it written |
+| Shortcodes | A second interpreter running over stored content, after that content already passed its own checks |
+| WP Cron | An asynchronous consumer. It reads at 3am what was written at lunchtime, with no user session and often no capability check |
+| REST `_fields` and `context` | The same object serialised differently for different callers, so a field hidden from one view can surface in another |
+| Transients used as cache keys | A value a caller influenced becomes part of a key that other requests read back |
+| Uploaded media metadata (EXIF, filename, title) | Parsed at upload, re read later by templates, converters, and admin listings |
+| The plugin `Update URI` header | A declarative header that the update machinery resolves |
+| Profile fields reaching a system prompt | The assistant reads the stored profile at answer time, inside its own instructions |
+
+**The last row is not hypothetical here. It is a real result on this fleet**, recorded in the
+work brain at `security/eduai-finding-03-system-prompt-name.md`. Cite it as an exhibit rather
+than as a counted vulnerability: it fails the `T1` adversary and trust model gate, because the
+student is hijacking their own assistant and nothing crosses a boundary. Its value is that it
+is the same root cause as the marker finding in a second place, which is what makes the shape
+systemic rather than a one off.
+
+**Every row here is a question a person asks, not a check a scanner runs.** Do not read the
+absence of a script as a gap waiting to be filled. Automation gathers, it never concludes. A
+script can list every place a value is stored. It cannot tell you that the second reader trusts
+what it finds there.
+
+**The unit of work is the second reader.** For every place a value is stored, list who else
+reads it and at what authority. One entry per reader. A store with one reader is one entry and
+you move on. A store with four readers is four entries and four authority levels to check
+separately.
 
 ## Known vulnerability check (the reframed duplicate gate)
 
@@ -521,6 +562,50 @@ So the run is **resumable, not unbounded**:
 
 Never persist active testing past invalid authorization, unsafe proof, third party harm,
 the demonstrated impact stopping point, or a reportable state.
+
+## The per candidate caps, adopted from MAPTA's measurements
+
+The session budget above is Ahmed's calendar. This is a second budget that sits inside it, and
+it applies to **one candidate**, not to the run. Stop work on a candidate at roughly any of
+these three:
+
+- **40 tool calls**, which the paper reports as the 95th percentile of its *successful*
+  challenges
+- **0.30 US dollars**
+- **300 seconds without significant progress**, which is the paper's own wording and its
+  qualifier
+
+**The plain conclusion first: long and expensive means losing, not thorough.** That is the
+opposite of the instinct, so here is the measurement it comes from. Solved challenges had a
+median cost of **0.073 US dollars** against **0.357 US dollars** for failures. All four
+correlations between resource use and success are **negative**. So a long expensive run
+predicts a miss.
+
+**It does not follow that spending more caused the miss**, and the paper declines that reading
+itself: it says the relationships likely reflect underlying challenge difficulty rather than
+resource use causing failure. Treat a cap as a signal to stop and rethink, not as proof the
+candidate is dead.
+
+**These three numbers were not measured on this engine.** They are MAPTA running GPT 5 at 2025
+prices, single agent and blackbox, over 104 CTF challenges the paper itself calls relatively
+simple web applications. This fleet is WordPress and PHP with source access, which is a
+different target class and a different configuration. Borrow them as an order of magnitude, not
+as a measurement of this engine. Nothing here has been costed against them, because nothing
+here counts cost. The measurements and their sources are in the work brain at
+`security/research/mapta-multi-agent-pentest.md`.
+
+So a candidate that has eaten its cap does not need more room. Stop it, write it up as refuted
+or as blocked with the exact blocker, and move to the next strongest signal. That is the per
+thread persistence rule above with a number attached to it.
+
+**Nothing enforces these caps today. They are a rule a person keeps, by hand.** The component
+that would enforce them is the **usage tracker**, listed as component 3 of Phase 3 in
+`security/research-ingest-and-engine-build-plan.md`. **No code for it exists.** Checked
+2026-08-12 across `scripts/` in this repo: nothing counts tool calls, cost, tokens or wall
+clock, and nothing stops a run. The plan's phrase "with the caps enforced rather than advisory"
+describes what Phase 3 is meant to build, not what runs now. So when a run stops on a cap, say
+which cap applied, what the count actually was, and that a person stopped it. Never report a
+cap as machine enforced while the tracker is unbuilt.
 
 ## Orchestrate specialized agents only when asked
 

@@ -73,9 +73,24 @@
       "title": "Successful errors for blind code injection and SSTI",
       "source": "portswigger-top-2025",
       "rank": 1,
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source"],
-      "signals": ["template", "expression", "successful error", "blind injection", "unexpected 2xx"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "template",
+        "expression",
+        "successful error",
+        "blind injection",
+        "unexpected 2xx"
+      ],
       "safe_validation": "Compare inert expression, invalid syntax, and harmless deterministic output or timing controls; stop before unsafe execution."
     },
     {
@@ -83,9 +98,25 @@
       "title": "ORM relationship and filter data leakage",
       "source": "portswigger-top-2025",
       "rank": 2,
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "graphql", "source"],
-      "signals": ["filter", "search", "relation", "join", "nested field", "existence oracle"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "graphql",
+        "source"
+      ],
+      "signals": [
+        "filter",
+        "search",
+        "relation",
+        "join",
+        "nested field",
+        "existence oracle"
+      ],
       "safe_validation": "Use synthetic records and owned tenants to compare result counts, ordering, errors, and field visibility across relation paths."
     },
     {
@@ -93,9 +124,26 @@
       "title": "Blind SSRF visibility through redirect-loop behavior",
       "source": "portswigger-top-2025",
       "rank": 3,
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "webhook", "cloud"],
-      "signals": ["webhook", "fetch", "url import", "redirect", "callback", "blind ssrf"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "webhook",
+        "cloud"
+      ],
+      "signals": [
+        "webhook",
+        "fetch",
+        "url import",
+        "redirect",
+        "callback",
+        "blind ssrf"
+      ],
       "safe_validation": "Use a researcher-controlled callback and benign redirect chain; do not target internal metadata or third-party systems."
     },
     {
@@ -103,9 +151,25 @@
       "title": "Unicode normalization differentials",
       "source": "portswigger-top-2025",
       "rank": 4,
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source"],
-      "signals": ["unicode", "normalization", "casefold", "identifier", "waf", "path"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "unicode",
+        "normalization",
+        "casefold",
+        "identifier",
+        "waf",
+        "path"
+      ],
       "safe_validation": "Compare canonically equivalent owned identifiers through each parser and guard; record normalization points without bypassing unrelated controls."
     },
     {
@@ -113,9 +177,23 @@
       "title": "SOAP proxy and WSDL trust-boundary analysis",
       "source": "portswigger-top-2025",
       "rank": 5,
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "soap", "source"],
-      "signals": ["soap", "wsdl", "http proxy", "dotnet", "generated client"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "soap",
+        "source"
+      ],
+      "signals": [
+        "soap",
+        "wsdl",
+        "http proxy",
+        "dotnet",
+        "generated client"
+      ],
       "safe_validation": "Trace WSDL-controlled configuration into generated clients in a local harness; use a harmless marker rather than production code execution."
     },
     {
@@ -123,9 +201,22 @@
       "title": "Cross-site ETag length side channel",
       "source": "portswigger-top-2025",
       "rank": 6,
-      "modes": ["black-box", "gray-box", "hybrid"],
-      "surfaces": ["web"],
-      "signals": ["etag", "cross-site", "length", "cache", "side channel", "xs-leak"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web"
+      ],
+      "signals": [
+        "etag",
+        "cross-site",
+        "length",
+        "cache",
+        "side channel",
+        "xs-leak"
+      ],
       "safe_validation": "Use two controlled account states and synthetic content; measure only the minimum distinction needed to establish an oracle."
     },
     {
@@ -133,9 +224,24 @@
       "title": "Framework internal cache poisoning chains",
       "source": "portswigger-top-2025",
       "rank": 7,
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "source"],
-      "signals": ["next.js", "internal cache", "cache key", "vary", "stale", "framework"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "source"
+      ],
+      "signals": [
+        "next.js",
+        "internal cache",
+        "cache key",
+        "vary",
+        "stale",
+        "framework"
+      ],
       "safe_validation": "Use unique canaries and a disposable cache key; compare cache miss/hit controls and avoid poisoning shared user traffic."
     },
     {
@@ -143,9 +249,22 @@
       "title": "Cross-origin redirect connection-pool side channel",
       "source": "portswigger-top-2025",
       "rank": 8,
-      "modes": ["black-box", "gray-box", "hybrid"],
-      "surfaces": ["web"],
-      "signals": ["redirect", "connection pool", "priority", "cross-origin", "side channel", "xs-leak"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web"
+      ],
+      "signals": [
+        "redirect",
+        "connection pool",
+        "priority",
+        "cross-origin",
+        "side channel",
+        "xs-leak"
+      ],
       "safe_validation": "Use controlled redirect destinations and owned states, repeat with browser isolation, and distinguish timing noise from a real oracle."
     },
     {
@@ -153,9 +272,24 @@
       "title": "HTTP/2 CONNECT interpretation and routing boundaries",
       "source": "portswigger-top-2025",
       "rank": 9,
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "cloud"],
-      "signals": ["http2", "connect", "proxy", "tunnel", "routing", "protocol"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "cloud"
+      ],
+      "signals": [
+        "http2",
+        "connect",
+        "proxy",
+        "tunnel",
+        "routing",
+        "protocol"
+      ],
       "safe_validation": "Validate only against an owned listener or approved lab endpoint; do not scan internal address ranges."
     },
     {
@@ -163,198 +297,570 @@
       "title": "Parser differential vulnerability research",
       "source": "portswigger-top-2025",
       "rank": 10,
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source"],
-      "signals": ["parser", "differential", "canonicalization", "proxy", "framework", "boundary"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "parser",
+        "differential",
+        "canonicalization",
+        "proxy",
+        "framework",
+        "boundary"
+      ],
       "safe_validation": "Build a local differential corpus and identify one input interpreted differently across adjacent components before testing a minimal benign case."
     },
     {
       "id": "OWASP-2025-A01",
       "title": "Broken access control",
       "source": "owasp-top-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "graphql", "websocket", "mobile", "source"],
-      "signals": ["idor", "bola", "role", "tenant", "object", "authorization"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "graphql",
+        "websocket",
+        "mobile",
+        "source"
+      ],
+      "signals": [
+        "idor",
+        "bola",
+        "role",
+        "tenant",
+        "object",
+        "authorization"
+      ],
       "safe_validation": "Use researcher-owned principals, objects, and tenants to build an intended-versus-observed authorization matrix."
     },
     {
       "id": "OWASP-2025-A02",
       "title": "Security misconfiguration",
       "source": "owasp-top-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "cloud", "source"],
-      "signals": ["debug", "default", "header", "cloud", "exposed", "configuration"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "cloud",
+        "source"
+      ],
+      "signals": [
+        "debug",
+        "default",
+        "header",
+        "cloud",
+        "exposed",
+        "configuration"
+      ],
       "safe_validation": "Confirm the exact reachable configuration and sensitive effect; avoid broad service scanning or third-party data access."
     },
     {
       "id": "OWASP-2025-A03",
       "title": "Software supply chain failures",
       "source": "owasp-top-2025",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["source", "ci-cd", "cloud"],
-      "signals": ["dependency", "build", "registry", "artifact", "ci", "supply chain"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "ci-cd",
+        "cloud"
+      ],
+      "signals": [
+        "dependency",
+        "build",
+        "registry",
+        "artifact",
+        "ci",
+        "supply chain"
+      ],
       "safe_validation": "Trace provenance, version resolution, signatures, and build inputs in a local or owned pipeline; do not publish malicious packages."
     },
     {
       "id": "OWASP-2025-A05",
       "title": "Injection",
       "source": "owasp-top-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source"],
-      "signals": ["sql", "command", "template", "ldap", "expression", "injection"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "sql",
+        "command",
+        "template",
+        "ldap",
+        "expression",
+        "injection"
+      ],
       "safe_validation": "Use harmless deterministic markers, invalid-input controls, and a local harness where impact could be destructive."
     },
     {
       "id": "OWASP-2025-A07",
       "title": "Authentication failures",
       "source": "owasp-top-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "mobile", "source"],
-      "signals": ["login", "session", "oauth", "jwt", "mfa", "account recovery"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "mobile",
+        "source"
+      ],
+      "signals": [
+        "login",
+        "session",
+        "oauth",
+        "jwt",
+        "mfa",
+        "account recovery"
+      ],
       "safe_validation": "Use only researcher-controlled accounts and tokens; compare fresh, expired, revoked, wrong-audience, and wrong-role controls."
     },
     {
       "id": "OWASP-2025-A08",
       "title": "Software or data integrity failures",
       "source": "owasp-top-2025",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source", "cloud"],
-      "signals": ["signature", "deserialization", "update", "artifact", "trust", "integrity"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source",
+        "cloud"
+      ],
+      "signals": [
+        "signature",
+        "deserialization",
+        "update",
+        "artifact",
+        "trust",
+        "integrity"
+      ],
       "safe_validation": "Use a controlled unsigned or altered artifact in a disposable environment and verify the intended trust check."
     },
     {
       "id": "OWASP-2025-A10",
       "title": "Mishandling of exceptional conditions",
       "source": "owasp-top-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "source"],
-      "signals": ["exception", "fail open", "partial state", "timeout", "rollback", "error"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "exception",
+        "fail open",
+        "partial state",
+        "timeout",
+        "rollback",
+        "error"
+      ],
       "safe_validation": "Trigger bounded invalid or interrupted states with synthetic data and verify rollback, authorization, and fail-closed behavior."
     },
     {
       "id": "OWASP-API-2023-01",
       "title": "Broken object level authorization",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "graphql", "websocket", "mobile"],
-      "signals": ["object id", "uuid", "ownership", "tenant", "bola", "idor"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "graphql",
+        "websocket",
+        "mobile"
+      ],
+      "signals": [
+        "object id",
+        "uuid",
+        "ownership",
+        "tenant",
+        "bola",
+        "idor"
+      ],
       "safe_validation": "Swap only owned object identifiers between controlled principals and compare with intended public-sharing behavior."
     },
     {
       "id": "OWASP-API-2023-02",
       "title": "Broken authentication",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "mobile", "websocket"],
-      "signals": ["token", "refresh", "mfa", "session", "jwt", "authentication"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "mobile",
+        "websocket"
+      ],
+      "signals": [
+        "token",
+        "refresh",
+        "mfa",
+        "session",
+        "jwt",
+        "authentication"
+      ],
       "safe_validation": "Use supplied test credentials and controlled lifecycle states; never use stolen credentials or credential stuffing."
     },
     {
       "id": "OWASP-API-2023-03",
       "title": "Broken object property level authorization",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "graphql", "mobile"],
-      "signals": ["hidden field", "mass assignment", "excessive data", "property", "role"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "graphql",
+        "mobile"
+      ],
+      "signals": [
+        "hidden field",
+        "mass assignment",
+        "excessive data",
+        "property",
+        "role"
+      ],
       "safe_validation": "Compare visible, writable, and returned properties across controlled roles with synthetic values."
     },
     {
       "id": "OWASP-API-2023-04",
       "title": "Unrestricted resource consumption",
       "source": "owasp-api-2023",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "graphql", "cloud"],
-      "signals": ["pagination", "upload", "query cost", "rate", "resource", "billing"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "graphql",
+        "cloud"
+      ],
+      "signals": [
+        "pagination",
+        "upload",
+        "query cost",
+        "rate",
+        "resource",
+        "billing"
+      ],
       "safe_validation": "Use analytical limits, a local harness, or a tiny bounded request set; do not stress production."
     },
     {
       "id": "OWASP-API-2023-06",
       "title": "Unrestricted access to sensitive business flows",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "web", "mobile"],
-      "signals": ["coupon", "purchase", "reservation", "invitation", "workflow", "automation"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "web",
+        "mobile"
+      ],
+      "signals": [
+        "coupon",
+        "purchase",
+        "reservation",
+        "invitation",
+        "workflow",
+        "automation"
+      ],
       "safe_validation": "Model the invariant and use one or two reversible synthetic transactions; do not create spam, scarcity, or financial harm."
     },
     {
       "id": "OWASP-API-2023-07",
       "title": "Server-side request forgery",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "web", "cloud"],
-      "signals": ["url", "webhook", "fetch", "preview", "callback", "ssrf"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "web",
+        "cloud"
+      ],
+      "signals": [
+        "url",
+        "webhook",
+        "fetch",
+        "preview",
+        "callback",
+        "ssrf"
+      ],
       "safe_validation": "Use a researcher-owned callback and localhost in a lab; do not access cloud metadata or internal third-party services."
     },
     {
       "id": "OWASP-API-2023-09",
       "title": "Improper inventory management",
       "source": "owasp-api-2023",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "cloud", "source"],
-      "signals": ["version", "deprecated", "shadow api", "debug", "inventory", "old endpoint"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "cloud",
+        "source"
+      ],
+      "signals": [
+        "version",
+        "deprecated",
+        "shadow api",
+        "debug",
+        "inventory",
+        "old endpoint"
+      ],
       "safe_validation": "Correlate documented and observed versions, then make one benign request to an explicitly in-scope endpoint."
     },
     {
       "id": "OWASP-API-2023-10",
       "title": "Unsafe consumption of APIs",
       "source": "owasp-api-2023",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["api", "webhook", "source", "cloud"],
-      "signals": ["integration", "webhook", "third party", "downstream", "trust", "api consumption"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "webhook",
+        "source",
+        "cloud"
+      ],
+      "signals": [
+        "integration",
+        "webhook",
+        "third party",
+        "downstream",
+        "trust",
+        "api consumption"
+      ],
       "safe_validation": "Replace the integration with an owned stub and verify validation, transport, authorization, redirects, and error handling."
     },
     {
       "id": "OWASP-AGENTIC-2025",
       "title": "Agentic application trust and control failures",
       "source": "owasp-agentic-2025",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["ai-agent", "api", "source"],
-      "signals": ["agent", "tool", "prompt injection", "memory", "approval", "autonomy"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "ai-agent",
+        "api",
+        "source"
+      ],
+      "signals": [
+        "agent",
+        "tool",
+        "prompt injection",
+        "memory",
+        "approval",
+        "autonomy",
+        "chat",
+        "assistant",
+        "chatbot",
+        "rag",
+        "retrieval",
+        "grounded",
+        "crm",
+        "booking"
+      ],
       "safe_validation": "Use synthetic tools, canary secrets, owned data, explicit approval controls, and a local sandbox; never let untrusted content expand authority."
     },
     {
       "id": "PS-RACE-STATE-MACHINE",
       "title": "Hidden state-machine and partial-construction race conditions",
       "source": "portswigger-web-races",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "graphql", "websocket", "source"],
-      "signals": ["race", "race condition", "concurrency", "hidden sub-state", "partial construction", "idempotency", "state machine", "limit overrun", "asynchronous job"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "graphql",
+        "websocket",
+        "source"
+      ],
+      "signals": [
+        "race",
+        "race condition",
+        "concurrency",
+        "hidden sub-state",
+        "partial construction",
+        "idempotency",
+        "state machine",
+        "limit overrun",
+        "asynchronous job"
+      ],
       "safe_validation": "Model one owned-data invariant, run stable sequential baselines, use bounded protocol-correct synchronization, wait for asynchronous settlement, and compare authoritative final state."
     },
     {
       "id": "PS-RACE-SINGLE-PACKET",
       "title": "HTTP/2 single-packet and HTTP/1.1 last-byte race delivery",
       "source": "portswigger-web-races",
-      "modes": ["black-box", "gray-box", "hybrid"],
-      "surfaces": ["web", "api", "graphql"],
-      "signals": ["race", "single packet", "single-packet", "http2", "last byte", "last-byte", "network jitter", "multi-endpoint"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "graphql"
+      ],
+      "signals": [
+        "race",
+        "single packet",
+        "single-packet",
+        "http2",
+        "last byte",
+        "last-byte",
+        "network jitter",
+        "multi-endpoint"
+      ],
       "safe_validation": "Fingerprint the negotiated protocol, begin with two owned-data lanes, preserve delivery limitations, and stop at the smallest repeatable authoritative-state violation."
     },
     {
       "id": "CWE-362-SHARED-STATE",
       "title": "Improper synchronization of security-sensitive shared state",
       "source": "cwe-362",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["source", "api", "web"],
-      "signals": ["race", "concurrent", "concurrency", "shared resource", "atomicity", "lock", "transaction", "double spend", "counter"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "api",
+        "web"
+      ],
+      "signals": [
+        "race",
+        "concurrent",
+        "concurrency",
+        "shared resource",
+        "atomicity",
+        "lock",
+        "transaction",
+        "double spend",
+        "counter"
+      ],
       "safe_validation": "Use an owned local regression with a deterministic barrier or scheduler, fixed seed, clean datastore, authoritative state assertion, and patched synchronization differential."
     },
     {
       "id": "CWE-367-TOCTOU",
       "title": "Time-of-check time-of-use security decision gap",
       "source": "cwe-367",
-      "modes": ["gray-box", "white-box", "hybrid"],
-      "surfaces": ["source", "api", "web"],
-      "signals": ["toctou", "time-of-check", "time of check", "check then use", "stale authorization", "file replacement", "state change"],
+      "modes": [
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "api",
+        "web"
+      ],
+      "signals": [
+        "toctou",
+        "time-of-check",
+        "time of check",
+        "check then use",
+        "stale authorization",
+        "file replacement",
+        "state change"
+      ],
       "safe_validation": "Insert a deterministic local barrier between the check and use, alter only researcher-owned state, verify the crossed invariant, and confirm the atomic or revalidated fix."
     },
     {
       "id": "H1P-2026-COVERAGE",
       "title": "Objective-led hacker-powered penetration-test coverage",
       "source": "hackerone-h1p-2026",
-      "modes": ["black-box", "gray-box", "white-box", "hybrid"],
-      "surfaces": ["web", "api", "mobile", "cloud", "source"],
-      "signals": ["pentest objective", "coverage", "engagement", "test plan", "hackerone", "real job"],
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "api",
+        "mobile",
+        "cloud",
+        "source"
+      ],
+      "signals": [
+        "pentest objective",
+        "coverage",
+        "engagement",
+        "test plan",
+        "hackerone",
+        "real job"
+      ],
       "safe_validation": "Translate engagement objectives into a coverage plan, record completed and deferred lanes, and preserve evidence quality gates for every candidate."
     }
   ]
