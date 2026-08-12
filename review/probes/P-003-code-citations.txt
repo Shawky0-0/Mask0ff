@@ -1,0 +1,106 @@
+P-003  EVERY CODE CITATION IN THE REVIEW, AS COMMAND OUTPUT
+Date 2026-08-13. Read only. No network, no target, no container.
+Tree: main at 4907158, Add the 2026-08-12 sweep output to findings/
+
+== 1. role_matches is a plain substring test ==
+def role_matches(text: str, keywords: list[str]) -> list[str]:
+    lowered = text.lower()
+    return [keyword for keyword in keywords if keyword in lowered]
+
+== 2. factor is the same substring test ==
+def factor(text: str, words: list[str]) -> float:
+    lowered = text.lower()
+    return 1.0 if any(word in lowered for word in words) else 0.0
+
+== 3. INTERPRETER_WORDS contains rce; I is weighted 0.08 ==
+INTERPRETER_WORDS = ["template", "eval", "exec", "shell", "expression", "loader", "class resolution", "instantiate", "interpreter", "renderer", "spel", "ssti", "rce"]
+WSS_WEIGHTS = {
+    "C": 0.18,
+    "M": 0.15,
+    "X": 0.12,
+    "P": 0.11,
+    "G": 0.10,
+    "D": 0.10,
+    "I": 0.08,
+    "A": 0.07,
+    "F": 0.05,
+    "N": 0.04,
+}
+
+== 4. the scorer is fed json.dumps(candidate), so key names are scored ==
+152:    text = json.dumps(candidate, ensure_ascii=False)
+
+== 5. AUTHORIZATION_INPUT is in neither the source nor the target tuple ==
+def detected_transitions(text: str) -> list[dict[str, str]]:
+    hits: dict[str, list[str]] = {}
+    for role, keywords in SEMANTIC_ROLES.items():
+        matched = role_matches(text, keywords)
+        if matched:
+            hits[role] = matched
+    transitions = []
+    for source_role in ("RAW_DATA", "STORED_DATA", "METADATA", "PATH_COMPONENT", "FILESYSTEM_OBJECT"):
+        if source_role not in hits:
+            continue
+        for target_role in (
+            "TEMPLATE_DATA",
+            "EXPRESSION",
+            "CONFIGURATION",
+            "GENERATED_CONFIGURATION",
+            "COMMAND_ARGUMENT",
+            "MODULE_IDENTIFIER",
+            "WORKFLOW_INSTRUCTION",
+            "TOOL_ARGUMENT",
+            "BUILD_INSTRUCTION",
+        ):
+            if target_role in hits and target_role != source_role:
+                transitions.append({"from": source_role, "to": target_role, "keywords": hits[target_role][:2]})
+    return transitions
+
+== 6. --now reaches the validity window in authorization_gate.py ==
+    parser.add_argument("--now", help="ISO-8601 time override for deterministic evaluation")
+        now_value=args.now,
+    try:
+        start = parse_date(str(data.get("valid_from", "")))
+        end = parse_date(str(data.get("valid_until", "")))
+        now = parse_date(now_value) if now_value else evaluation_time
+        if now is not None:
+            evaluation_time = now
+        if start and now and now < start:
+            errors.append("authorization window has not started")
+        if end and now and now > end:
+            errors.append("authorization window has expired")
+
+== 7. --now on both evidence_bundle subcommands ==
+    authorize.add_argument("--now", help="ISO-8601 time override for deterministic evaluation")
+    verify.add_argument("--now", help="ISO-8601 time override for deterministic assessment")
+
+== 8. A0 target matching drops the port ==
+
+def target_values(target: str) -> set[str]:
+    values = {target.lower().strip()}
+    parsed = urlparse(target if "://" in target else f"https://{target}")
+    if parsed.hostname:
+        values.add(parsed.hostname.lower())
+    return values
+
+
+def matches(target: str, patterns: list[str]) -> bool:
+    values = target_values(target)
+
+== 9. an allowed action_group lets an unnamed action through ==
+        errors.append(f"action group is explicitly prohibited: {action_group}")
+    elif normalized_action or normalized_group:
+        exact_allowed = normalized_action and normalized_action in allowed
+        group_allowed = normalized_group and normalized_group in allowed_groups
+        if not exact_allowed and not group_allowed:
+            label = action_group or action
+            errors.append(f"action or action group is not allowed: {label}")
+
+== 10. mask0ff.cmd forwards an unquoted %* through cmd.exe ==
+set "PYTHONDONTWRITEBYTECODE=1"
+"%PYEXE%" %PYPREFIX% "%~dp0mask0ff.py" %*
+exit /b %ERRORLEVEL%
+
+== 11. AGENT_INSTRUCTION and MODEL_CONTEXT appear nowhere in the code ==
+grep -rn "AGENT_INSTRUCTION\|MODEL_CONTEXT" . --exclude-dir=review  ->  matches: 0
+(the review folder itself is excluded, because this file names both terms)
