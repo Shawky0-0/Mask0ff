@@ -7,8 +7,8 @@ sources:
 
 # APIDS-0014: the AI gateway test button that spawns a process, and the header bypass in front of it
 
-**The second KEV listed AI item in this run**, and the one that lands closest to how the fleet
-actually talks to model providers. Related:
+**The second KEV-listed AI item in this run**, and one that maps directly to how applications
+talk to model providers. Related:
 APIDS-0011,
 MTH-API-006,
 the API folder.
@@ -100,9 +100,10 @@ variant_rule: >
   harmless because they are read only from the operator's point of view, and consistently
   privileged because testing a connection means making one. Look at webhook test senders, SMTP
   test buttons, database connection testers, and integration probes.
-  On Ahmed's surface this is the closest entry so far to how the fleet consumes AI: the EduAi
-  .env holds live Anthropic, Groq and ZAI keys, and anything that sits between an application
-  and those providers is a gateway of this kind, whether or not it is LiteLLM.
+  Applications commonly keep live provider credentials behind an integration or gateway.
+  Anything sitting between an application and a model provider has this trust shape, whether
+  or not it is LiteLLM; establish the actual component and credential boundary from current
+  target evidence.
 lab:
   install: Disposable isolated VM, LiteLLM pinned in the affected range, no outbound network, no real provider keys
   snapshot: Snapshot before the first request
@@ -168,6 +169,6 @@ what may be launched.
 The other tempting shortcut is to rely on the route being obscure. Public scanning traffic for
 KEV listed paths should be assumed, so an undocumented path is not a control.
 
-**Gate G5.** Whether anything on the fleet runs LiteLLM is Ahmed's call and the repo does not
-record it. Filed because the fleet consumes three AI provider APIs with live keys, and because
-this is the shape that anything sitting in front of those keys will have.
+**Deployment relevance must be established per target.** This record does not assert that a
+target runs LiteLLM. It is filed because any component sitting in front of live model-provider
+credentials has the same authorization and process-execution questions.

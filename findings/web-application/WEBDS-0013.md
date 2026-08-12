@@ -148,7 +148,7 @@ the bad value. The value was declared valid at the door, so it now travels
 everywhere with a clean bill of health. Rejecting it at validation is the only
 place that fixes every downstream consumer at once.
 
-This is also the reason the bug is worth Ahmed's attention beyond Laravel. Two
+This is also the reason the bug matters beyond Laravel. Two
 components were each behaving reasonably. The validator thought its job was
 syntax. The mailer thought its input had been validated. Nobody owned the
 control character question, so nobody handled it.

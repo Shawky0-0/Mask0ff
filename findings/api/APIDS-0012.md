@@ -9,9 +9,8 @@ sources:
 
 # APIDS-0012: a plugin REST route with no permission callback, handing out every admin email
 
-**The exact pattern Ahmed already found on EduAi**, in a shipped plugin with a CVE on it.
-Clears carried debt item 8. Related:
-EduAi Finding 2,
+**A recurring WordPress REST authorization pattern**, now represented by a shipped plugin with
+a CVE. Related:
 MTH-API-001,
 the API folder.
 
@@ -61,7 +60,7 @@ signal: >
   their own dashboard, the check is often assumed to live in the dashboard. Grep the plugin for
   register_rest_route and read the permission_callback argument of every one, not the handler.
 safe_proof: >
-  Lab only, on Ahmed's own WordPress sandbox with the affected plugin version installed.
+  Lab only, on a researcher-controlled WordPress sandbox with the affected plugin version installed.
   Create a test account with a canary address, for example apids0012canary@example.invalid.
   Then, logged out entirely and in a private window with no cookies, request the route with a
   term fragment. If the canary address comes back to an anonymous caller, it is proved. The
@@ -94,16 +93,15 @@ detection: >
   in access logs as a burst against one path with a changing query string, which is one of the
   few API abuses a WAF can key on without understanding the application.
 variant_rule: >
-  Every one of the 13 active plugins on the EduAi install, and Tutor LMS above all, since an
-  LMS exposes student, instructor and enrolment lookups that are exactly this shape. The
+  Every plugin on an LMS or content platform, especially plugins that expose student,
+  instructor, or enrolment lookups. The
   question for each is the same: does register_rest_route declare a permission_callback, and
-  does that callback check a capability rather than return true. EduAi's own seven custom
-  routes were reviewed and all have a permission callback, so the risk on that install sits in
-  the plugins, not in the custom code.
+  does that callback check a capability rather than return true. A correct callback in custom
+  routes does not establish that separately installed plugins enforce the same invariant.
 lab:
-  install: The existing wp-sandbox-demo WordPress lab, plugin pinned below 1.19.5
+  install: A researcher-controlled WordPress lab, plugin pinned below 1.19.5
   snapshot: Snapshot before installing the plugin
-  teardown: Revert the snapshot. Never point any of this at a company site
+  teardown: Revert the snapshot. Never point any of this at a production site
 provenance:
   source: WPScan vulnerability database entry, and the OffSeq threat radar record
   accessed: 2026-08-12
@@ -130,7 +128,7 @@ live somewhere it did not, and the failure mode of forgetting it is silence.
 
 ## How you would reproduce it
 
-On Ahmed's own sandbox, never on a company site. Plant a canary address on a test account,
+On a researcher-controlled sandbox, never on a production site. Plant a canary address on a test account,
 install the affected version, log out completely, and request the route from a private window.
 
 Then run the controls, because this is exactly where a WordPress tester fools themselves. If a
@@ -156,7 +154,6 @@ the most common confusions in WordPress code. When that appears in review, the r
 a nonce answers "did this request come from my form" while a capability check answers "is this
 caller allowed", and the route needs the second one.
 
-**Gate G5.** Whether Mail Mint is installed anywhere on the fleet is Ahmed's call. The repo
-does not record it among EduAi's 13 active plugins. The reason it is filed is that the
-mechanism is identical to what he already found by hand, and it gives him a named CVE to point
-at when explaining the class to somebody.
+**Deployment relevance must be established per target.** The reason this record is filed is the
+reusable mechanism and its named CVE, not an assumption that Mail Mint is installed on a
+particular site.

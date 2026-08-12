@@ -192,7 +192,7 @@ Read [case-database.md](references/case-database.md) before updating or interpre
 
 ## Retrieve only relevant knowledge
 
-Use [technique-routing.md](references/technique-routing.md) to select the smallest relevant files under `references/techniques/`. Search first instead of opening large files:
+Use [technique-routing.md](references/technique-routing.md) to select the smallest relevant files under `references/techniques/`. Search first instead of opening large files. The `search` command covers both `references/` and the desk-research records and method cards under `findings/`:
 
 ```powershell
 .\scripts\mask0ff.cmd search "permission prompt hidden parameter"
@@ -200,6 +200,8 @@ Use [technique-routing.md](references/technique-routing.md) to select the smalle
 ```
 
 Read [current-techniques.md](references/current-techniques.md) when choosing modern research lanes. The current catalog includes provenance, modes, signals, and minimum-safe controls for expert-curated 2025 research, OWASP Top 10:2025, WSTG, API Security, and agentic applications. Recheck living primary sources during a real engagement.
+
+Treat every record under `findings/` as a cited research hypothesis, never as a reproduced finding or proof that a target is affected. Read [findings/README.md](findings/README.md) before adapting one, recheck its source and affected-version claims, and rebuild the proof from the current target with independent controls.
 
 Use the redacted real-case library under `references/cases/` for methodological analogies. Do not assume a target is vulnerable because it resembles a prior case. Rebuild the proof from current evidence.
 

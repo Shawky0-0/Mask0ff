@@ -89,8 +89,8 @@ the HTTPS redirect not happen.
 
 The direct impact is that HTTPS enforcement can be skipped. The reason to care more is the
 family, not this instance. The same "trust a header nobody authenticated" mistake keyed on
-`X-Forwarded-For` gives IP allow list bypass into admin panels and free rate limit resets, and
-fleet, and this is the cheapest possible way to learn to ask the question.
+`X-Forwarded-For` gives IP allow-list bypass into admin panels and free rate-limit resets. This
+is the cheapest possible way to learn to ask the question across an application estate.
 
 ## What the fix is, and why the obvious fix is not enough
 

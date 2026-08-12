@@ -59,7 +59,7 @@ proxy configuration, but that undersells it: the impact is other users' requests
 which in effect is an authentication and authorisation failure produced entirely at the
 transport layer.
 
-**Why it belongs in an API sweep at all:** this is the layer every API in a fleet shares. An API
+**Why it belongs in an API sweep at all:** this is a layer shared by an entire API estate. An API
 gateway, a CDN, an ingress controller and a Kubernetes service mesh are all reverse proxies. A
 desync there is not one API's bug, it is every API behind that hop at once. The research
 specifically documents exploitation inside CDN infrastructure and a payment provider's cluster.

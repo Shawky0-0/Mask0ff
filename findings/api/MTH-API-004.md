@@ -75,33 +75,33 @@ copies of the same mutation in a single request, which defeats naive per request
 even needing concurrency. Also applies to gRPC and to any queue consumer that can receive a
 duplicate delivery, which is most of them.
 
-## Whether it reaches Ahmed's surface, and how
+## Transferability to web and API targets
 
-Directly, and this is the most fleet relevant method card in the folder so far.
+This method applies directly to any workflow that is intended to grant or consume something
+once.
 
-* **Tutor LMS**, the largest unexamined API surface on the fleet. Enrolment, claiming a
-  certificate, submitting an assignment that is meant to be submitted once, redeeming a course
-  coupon. Every one of those is a one time flow.
-* **WooCommerce and any coupon or voucher logic**, wherever the fleet has it.
+* **Learning-management workflows.** Enrolment, claiming a certificate, submitting an
+  assignment once, and redeeming a course coupon are all one-time flows.
+* **Commerce coupon or voucher logic.** Redemption must remain single-use under concurrency.
 * **Anything metered per user against an AI provider.** If a route gives a user a number of
-  model calls, that quota is a one time or limited flow and the same window applies. The EduAi
-  `.env` holds live Anthropic, Groq and ZAI keys, so exceeding a quota is spend, not just an
-  availability question. This is the point where `API6` and `API4` meet on Ahmed's own fleet.
+  model calls, that quota is a one-time or limited flow and the same window applies. Exceeding
+  the quota can create provider spend, not just an availability problem. This is where `API6`
+  and `API4` meet.
 * **Account registration and password reset**, where a single use token that can be consumed
   twice is the same defect in a security critical flow.
 
 ## A safe way to test for it
 
-Lab only, on systems Ahmed owns, and the safety here is mostly about restraint.
+Lab only, on researcher-controlled systems, and the safety here is mostly about restraint.
 
 1. **Two requests, not thirty.** Two proves the window exists. Thirty is abuse wearing the
    costume of a demonstration. The researcher's thirty were authorised under a bug bounty
-   programme, which is a permission that does not exist outside Ahmed's own labs.
+   programme; never assume that permission exists outside an explicit authorization.
 2. **Snapshot first**, because unlike most tests in this lane, the point is to change state.
 3. **Plant a canary account with a known balance or a known enrolment state**, so before and
    after are unambiguous.
 4. **Read the resulting state, not the response codes.**
-5. Never against a live company system, never against a third party, never where real money,
+5. Never against a live production system, never against a third party, never where real money,
    real inventory or a real person's record is involved.
 
 ## The control that catches a false positive

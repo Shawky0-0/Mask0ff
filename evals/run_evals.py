@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sqlite3
 import sys
 import threading
@@ -32,6 +33,7 @@ from race_condition import (  # noqa: E402
 from redact_artifact import PATTERNS  # noqa: E402
 from session_profile import validate_session  # noqa: E402
 from security_graph import validate_graph as validate_security_graph  # noqa: E402
+from search_library import search as search_research_library  # noqa: E402
 from tool_inventory import build_strategy  # noqa: E402
 from triage_report import (  # noqa: E402
     program_threat_model_check,
@@ -192,6 +194,24 @@ def main() -> int:
     template = json.loads((ROOT / "assets" / "evidence-bundle" / "finding-record.json").read_text(encoding="utf-8"))
     scenarios = json.loads((ROOT / "evals" / "scenarios.json").read_text(encoding="utf-8"))["scenarios"]
     failures = []
+
+    finding_files = sorted(
+        path for path in (ROOT / "findings").rglob("*.md") if path.name != "README.md"
+    )
+    finding_ids = []
+    for path in finding_files:
+        match = re.search(r"(?m)^#\s+([A-Z0-9-]+)(?::|,)", path.read_text(encoding="utf-8"))
+        if not match:
+            failures.append(f"finding research record lacks a stable heading ID: {path.relative_to(ROOT)}")
+            continue
+        finding_ids.append(match.group(1))
+    if len(finding_ids) != len(set(finding_ids)):
+        failures.append("finding research corpus contains duplicate heading IDs")
+
+    finding_search_results = search_research_library("CVE-2026-42271", limit=5, snippets=1)
+    expected_finding = ROOT / "findings" / "api" / "APIDS-0014.md"
+    if not any(path == expected_finding for _score, path, _matches in finding_search_results):
+        failures.append("research search does not return the findings corpus")
     for scenario in scenarios:
         record = scenario_record(template, scenario)
         errors, _ = validate(record)
@@ -1192,6 +1212,7 @@ The ID may allow unauthorized access, but no response body was captured.
         "assessment_scenarios": 8,
         "dynamic_profile_scenarios": 11,
         "current_technique_count": len(current_techniques),
+        "finding_research_count": len(finding_files),
         "race_workflow_scenarios": 12,
         "database_integrity": "ok" if database.is_file() and not any("SQLite integrity" in item for item in failures) else "failed-or-missing",
         "advisory_database_integrity": "ok" if advisory_database.is_file() and not any("advisory SQLite integrity" in item for item in failures) else "failed-or-missing",

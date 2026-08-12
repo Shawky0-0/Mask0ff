@@ -90,7 +90,7 @@ removing the same pattern within days.
 **Do not poison anything. Ever.** The test is entirely local and does not involve the vendor.
 
 1. Install the plugin on the sandbox.
-2. Put a proxy Ahmed controls between the sandbox and the network, and intercept the plugin's
+2. Put a researcher-controlled proxy between the sandbox and the network, and intercept the plugin's
    own outbound request.
 3. Return a JSON body where the suspect field holds a harmless canary: a string that would
    visibly break out of the attribute if unescaped, but that contains no script and no event
@@ -122,11 +122,11 @@ front end and you will find nothing and conclude wrongly.
 * **The JavaScript supply chain generally.** A CDN hosted script is the same trust, with the
   escaping step removed entirely. That belongs to the sibling sweep at `advisories-web/`.
 * **CRM and marketing embeds** that render remote HTML into an admin console.
-* **AI surfaces, and this is the one closest to Ahmed's current work.** A model response is a
+* **AI surfaces.** A model response is a
   network response. A chat widget that renders model output as markup is structurally identical
   to this banner, and the "vendor endpoint" is even less predictable. This is the same family as
-  the EduAi prompt injection finding: content
-  arriving from elsewhere gets treated as trusted because of where it came from.
+  prompt-injection and unsafe-rendering family: content arriving from elsewhere gets treated
+  as trusted because of where it came from.
 
 **The generalisation worth carrying:** trust is about the channel, not the content. Ask of any
 value, "if the party at the other end of this were hostile tomorrow, what would this line do",

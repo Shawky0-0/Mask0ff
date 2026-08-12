@@ -175,8 +175,7 @@ Carry generator is still fully determined by its state no matter how well you
 seed it, so recovering one output still reveals the rest. The generator itself
 had to go.
 
-The obvious *testing* fix does not work either, and this is the part worth
-Ahmed's attention. You cannot find this by testing the running application. The
+The obvious *testing* fix does not work either. You cannot find this by testing the running application. The
 tokens look fine. They are the right length, they pass every format check, and
 nothing in a response, a log, or a scanner result hints at it. This class is
 found by reading dependencies, which is why supply chain sits in its own class

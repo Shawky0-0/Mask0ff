@@ -9,8 +9,8 @@ sources:
 
 # APIDS-0010: the AI chat memory is filtered by session, and session is not an owner
 
-**The first entry in the AI and RAG endpoint authorisation row**, which was the most YZH
-relevant row in the class table and empty after two runs. Related:
+**The first entry in the AI and RAG endpoint authorisation row**, which was previously
+underrepresented in the class table. Related:
 MTH-API-001, the object graph,
 APIDS-0011, the other Langflow entry,
 the API folder.
@@ -96,8 +96,8 @@ detection: >
   well formed and authenticated.
 variant_rule: >
   Any endpoint that takes a conversation, thread, cart, room, batch or job identifier from the
-  client and uses it to select rows. On Ahmed's surface the direct read across is EduAi and any
-  AI or RAG route that keeps chat history: if history is fetched by a session or conversation
+  client and uses it to select rows. The direct read across is any AI or RAG route that keeps
+  chat history: if history is fetched by a session or conversation
   id, ask whether the query also names the user. Tutor LMS is the larger unexamined case, where
   the same shape appears as course, cohort, enrolment and submission identifiers.
 lab:
@@ -155,5 +155,6 @@ that leaks or shares a session identifier, a support tool, a URL, a log line, a 
 brings the whole thing back. Unguessable is not the same as unauthorised, and a fix that
 confuses the two is the one worth pushing back on in review.
 
-**Gate G5.** Whether the fleet runs Langflow at all is Ahmed's call. The repo does not record
-it. This entry is filed for the shape, which reaches EduAi and Tutor LMS directly.
+**Deployment relevance must be established per target.** This entry is filed for the shape;
+the presence of Langflow or an equivalent conversation-history implementation must be verified
+before the record is adapted to an engagement.

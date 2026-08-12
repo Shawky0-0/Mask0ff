@@ -49,7 +49,7 @@ organisation's estate**, including which components are deployed, which are only
 and which surfaces nobody has reviewed yet. That is a map of where one company is weak. It
 has no value to a reader of this repository and real cost if it travels.
 
-Entries here are written from public sources and carry no such context.
+Entries here are written from public sources and carry no named researcher, client, or private-estate context. Transfer notes must stay generic and must not assert that a particular organization deploys a product or has an unreviewed surface.
 
 ## Contributing back
 

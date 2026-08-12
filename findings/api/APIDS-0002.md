@@ -104,7 +104,7 @@ fix:
 hardening: >
   The control that kills the class is not the alignment fix. It is refusing to join by index
   at all: carry the matched route on the sub request object itself so a handler can never be
-  read from a position. Operationally, what a fleet can do today is block or authenticate
+  read from a position. Operationally, what an affected deployment can do today is block or authenticate
   /wp-json/batch/v1 at the edge, because almost no site actually uses it.
 detection: >
   Unauthenticated POST requests to /wp-json/batch/v1 or /?rest_route=/batch/v1 from addresses

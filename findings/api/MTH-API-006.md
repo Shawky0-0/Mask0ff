@@ -87,20 +87,15 @@ while being reachable through queries rather than mutations, and in introspectio
 itself a "this only describes things" feature. Also applies to admin panels of every kind and to
 gRPC reflection.
 
-## Whether it reaches Ahmed's surface, and how
+## Transferability to web and API targets
 
-**Yes, and by shape rather than by product.** Neither Langflow nor LiteLLM is recorded anywhere
-on the fleet. What is recorded:
+**Apply this by shape rather than by product.** Establish the target's actual components before
+testing, then prioritize:
 
-* **EduAi's seven custom REST routes** were reviewed and all have a permission callback, so the
-  custom code is not where this lives.
-* **Tutor LMS and the other 12 active plugins are entirely unreviewed by anyone.** An LMS has
-  preview routes almost by definition: preview a lesson, preview a quiz, preview a certificate,
-  validate an enrolment code, test an email template. Every one of those is a candidate and none
-  has been looked at.
-* **Anything the fleet uses to reach Anthropic, Groq or ZAI.** The `.env` holds live keys. A
-  route that "tests" a provider connection is a route that spends money and reveals whether a
-  key works, whoever calls it.
+* **LMS and CMS preview routes.** Previewing a lesson, quiz, certificate, email template, or
+  enrolment code sounds passive but may render, compile, fetch, or execute.
+* **Model-provider integration routes.** A route that tests a provider connection can spend
+  money and disclose whether a credential works, whoever calls it.
 * **WordPress specifically:** the concrete version of this check is to grep for
   `register_rest_route` and read the `permission_callback` of every route whose name sounds
   passive. `__return_true` on a route called `preview` or `validate` is the exact finding.

@@ -67,7 +67,7 @@ signal: >
   a trial activation. The discovery signal is not a strange response: it is noticing that the
   user interface only ever sends the request once, and asking what enforces that on the server.
 safe_proof: >
-  Lab only, on a system Ahmed owns, and this one needs stating carefully because the naive
+  Lab only, on a researcher-controlled system, and this one needs stating carefully because the naive
   proof is destructive.
   The safe demonstration is the smallest concurrency that shows the window: send exactly two
   parallel requests, not thirty, and observe whether the value is applied twice. Two is enough
@@ -75,7 +75,7 @@ safe_proof: >
   quantity, prove it with a canary account holding a canary balance, and record before and
   after. Never run this against anything with real money, real inventory or a third party
   behind it, and never in production. The researcher's thirty requests were authorised under a
-  bug bounty programme, which is a permission Ahmed does not have anywhere outside his own labs.
+  bug bounty programme; never assume that permission exists outside an explicit authorization.
 controls: >
   Negative control: send the same two requests sequentially rather than in parallel, waiting
   for the first response. If the second is rejected, the guard exists and only the concurrency
@@ -101,16 +101,16 @@ detection: >
   cheap alert to build. It is one of the few places where rate limiting genuinely does help,
   though it treats the symptom, not the missing constraint.
 variant_rule: >
-  Every flow that grants something once. On Ahmed's surface: enrolment in a course, redemption
+  Every flow that grants something once: enrolment in a course, redemption
   of a voucher or coupon, a trial or free tier activation, a referral credit, and any
   "claim your certificate" step on an LMS. Tutor LMS is the obvious hunting ground. Also the
   reverse direction, where the same window lets a cancel or refund run twice.
   And one worth naming separately: an AI route that is metered or quota limited per user is
   this same shape, where the thing granted more times than intended is model spend.
 lab:
-  install: Ahmed's own lab application with a one time flow, or the WordPress sandbox with a coupon plugin
+  install: A researcher-controlled lab application with a one time flow, or a WordPress sandbox with a coupon plugin
   snapshot: Snapshot before, since the point of the test is to change state
-  teardown: Revert the snapshot. Never against a live company system, never against a third party
+  teardown: Revert the snapshot. Never against a live production system, never against a third party
 provenance:
   source: HackerOne blog, "How a Business Logic Vulnerability Led to Unlimited Discount Redemption"
   accessed: 2026-08-12
@@ -146,7 +146,7 @@ wrong, and the aggregate is not visible in any single request.
 
 ## How you would reproduce it
 
-Not the way the researcher did, unless it is Ahmed's own lab. Two parallel requests, not thirty.
+Not the way the cited researcher did, unless it is a controlled lab. Two parallel requests, not thirty.
 Two prove the window exists. Thirty is abuse dressed as a demonstration, and outside a bug
 bounty scope it is not defensible.
 
@@ -173,6 +173,6 @@ belongs in the database, because that is the only place where concurrent writers
 The second wrong fix is a rate limit. It makes the attack slower and does not make it
 impossible, and it leaves a system that is still correct only by luck.
 
-**Gate G5.** Nothing here is about a YZH system. It is filed because the class was at zero,
-because it is the hardest class to find deliberately, and because the flows it applies to,
-enrolment, vouchers, certificates, are all over the fleet Ahmed tests.
+**Deployment relevance must be established per target.** This is filed because the class was
+previously underrepresented, because it is difficult to find deliberately, and because one-time
+flows such as enrolment, vouchers, and certificates are broadly reusable hunting surfaces.

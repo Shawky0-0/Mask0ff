@@ -75,7 +75,7 @@ take a string and give you an object. The capability system then works on IDs. S
 between "an ID I checked" and "a string I received" is built into the platform, and any plugin
 that serves files, exports, or reports lives on that split.
 
-Concrete places to go looking on this fleet's stack:
+Concrete places to look on a typical WordPress or education-platform stack:
 
 * gated course material and lesson attachment delivery in an LMS
 * membership and paywall download handlers
@@ -95,7 +95,7 @@ Plant a canary and aim at the canary. Never aim at a real secret.
 
 Reading a marker proves the boundary failed exactly as well as reading a credential does, and
 it does not put a secret in a log, a screenshot or an evidence bundle. That distinction is
-worth holding to even in a lab Ahmed owns.
+worth holding to even in a researcher-controlled lab.
 
 ## The control that catches a false positive
 

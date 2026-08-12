@@ -176,7 +176,7 @@ That is closer, but it inverts the intent: during a genuine first install there
 is no admin yet, so the check would either block real installs or need its own
 exception, and the exception is what caused this in the first place.
 
-The real lesson is the one worth carrying to the YZH fleet. This is not a Krayin
+The real lesson transfers beyond Krayin. This is not a Krayin
 bug in any deep sense. It is a setup endpoint that outlived setup, and the
 gate on it asked a question about the request instead of a question about the
-system. Ahmed will meet that shape again, and it will not be in a CRM.
+system. The same shape can recur in products far outside CRM software.

@@ -83,14 +83,14 @@ Business logic, races and operations, corpus directory
 `08-business-logic-race-operations/`.
 
 It is stack independent, because the mechanism is in the application's state
-handling rather than in any framework. It reaches Ahmed's fleet directly. Anything
+handling rather than in any framework. Anything
 with a balance, a quota, a seat count, a coupon, a one time token, a "you may only
 do this once" rule is in scope. On an education product that means enrolment
 limits, course seat counts, quiz attempt limits, certificate issuance, and any
 discount or voucher logic.
 
-One PHP specific trap is called out and matters for the Laravel and WordPress
-fleet: **PHP session locking serialises requests that share a session**, which
+One PHP-specific trap matters for Laravel and WordPress applications:
+**PHP session locking serialises requests that share a session**, which
 hides database level races completely. If you test with one logged in session you
 will find nothing and conclude the application is safe. The paper's instruction is
 to use "a separate session for every request".
@@ -106,7 +106,7 @@ The three steps, in order, and the order is the point.
    signal, not the batch result on its own.
 3. **Prove.** Cut down to the fewest requests that still demonstrate it.
 
-Safety rules for this lane specifically. Labs only, on something Ahmed owns
+Safety rules for this lane specifically. Labs only, on something the researcher controls
 outright. Use a canary value, for example a voucher created for the test worth
 nothing. Never race anything that moves money, sends mail, or touches another
 person's record, even in a lab, because the failure mode of a race test is doing

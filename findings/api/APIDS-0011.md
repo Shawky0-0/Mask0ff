@@ -106,9 +106,8 @@ variant_rule: >
   Any AI orchestration or workflow tool that accepts user authored code, expressions or
   templates: node based automation platforms, notebook servers, template engines with a
   preview route, and rules engines. Also every "developer mode" or "auto login" convenience in
-  any product. On Ahmed's surface the read across is not Langflow itself, which the repo does
-  not record, but the shape: any EduAi or Tutor LMS route that validates, previews or renders
-  something the caller supplied.
+  any product. The transferable shape is any route that validates, previews, or renders
+  something the caller supplied; product deployment must be established independently.
 lab:
   install: Disposable isolated VM, Langflow pinned in the affected range, no outbound network
   snapshot: Snapshot before first request. This is remote code execution, so treat the VM as burned afterwards
@@ -176,6 +175,6 @@ it. When somebody proposes a sandbox for this class in review, that is the argum
 The auth half's fix is `___`. Nothing this sweep read documents what IBM changed, and it is
 not inferred here.
 
-**Gate G5.** The repo does not record Langflow anywhere on the fleet. Filed because it is the
-first KEV listed AI tooling this folder has seen, and because the validate endpoint shape
-reaches Ahmed's surface even though the product does not.
+**Deployment relevance must be established per target.** This is filed because it is the first
+KEV-listed AI tooling in this folder and because the validate-endpoint shape transfers beyond
+the named product.

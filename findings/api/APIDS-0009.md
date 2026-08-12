@@ -89,8 +89,8 @@ detection: >
   on a webhook route is the signal. A gateway can key on requests to webhook routes that carry
   no signature header at all.
 variant_rule: >
-  Every other inbound webhook the fleet consumes. GoHighLevel CRM callbacks and WhatsApp
-  Business API callbacks are both named in the company stack and both are exactly this shape.
+  Every other inbound webhook an application consumes. CRM callbacks and messaging-platform
+  callbacks are both exactly this shape.
   The question to ask of each is not "is there a secret configured" but "is the secret read".
   Also check the other Symfony notifier bridges, since the parser interface is shared, and
   check payment and mail provider callbacks in any Laravel application.
@@ -148,6 +148,6 @@ terminating reverse proxy will rebuild the wrong URL and reject every legitimate
 be tempted to turn verification back off, which lands them exactly where they started. Worth
 knowing before recommending the upgrade to anyone.
 
-**Gate G5.** Whether anything on the YZH or ECMworx fleet consumes this bridge is Ahmed's call.
-The repo records Laravel rather than Symfony, and Laravel ships Symfony components but not this
-notifier by default. The reason this entry matters here is the pattern, not the package.
+**Deployment relevance must be established per target.** Framework inclusion alone does not
+prove that this notifier bridge is installed or reachable. The reason this entry matters is the
+pattern, not an assumed deployment of the package.

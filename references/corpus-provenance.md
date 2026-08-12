@@ -42,3 +42,7 @@ Original item-level provenance and licensing for much of the inherited technique
 ## Current compact technique catalog
 
 `references/techniques/current-techniques.json` is a separate routing index reviewed on 2026-08-02. Every entry names a source, assessment modes, surfaces, signals, and a minimum-safe validation design. Its source registry attributes PortSwigger Research's expert-curated 2025 list and official OWASP Top 10:2025, WSTG, API Security, and Agentic Applications material. It summarizes technique names and testing implications without copying payload collections or claiming that a source match proves a target flaw.
+
+## Desk-research findings and method cards
+
+`findings/` contains public-source vulnerability research records and transferable method cards. They are searchable through the same `search` command as `references/`, but remain hypotheses with citations: most were not reproduced in a lab and many were not checked against a fix diff. Recheck living sources, affected versions, root cause, and safe controls before adapting a record to an engagement. The published corpus must remain generic and must not include researcher names, private estate inventories, client identifiers, credentials, or target-specific deployment claims.

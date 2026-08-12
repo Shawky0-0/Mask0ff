@@ -65,8 +65,7 @@ the attacker has a vote on whether the guard runs.**
 Authentication, session, OAuth and JWT, corpus directory
 `03-authentication-session-oauth-jwt/`, with an access control flavour.
 
-Directly applicable to Ahmed's stack. Laravel is named in
-the company stack, and the pattern is a Laravel idiom. The same
+Directly applicable to Laravel applications because the pattern is a Laravel idiom. The same
 shape exists everywhere under a different spelling: Symfony security annotations
 and access control rules in `security.yaml`, Express routers where a
 `router.use()` guard is registered after some routes rather than before, Django
@@ -86,7 +85,7 @@ public.
 2. List every exception you find, with the reason if a comment gives one.
 3. For each, open the middleware it would have hit and read the guard condition.
    Write the condition out as a boolean and mark which terms the client controls.
-4. Only then, and only against a lab install Ahmed owns, send the request with
+4. Only then, and only against a researcher-controlled lab install, send the request with
    and without the controlled term. The pair of responses is the evidence.
 
 For a live target, stop at step 3 and report. Steps 1 to 3 are reading, and

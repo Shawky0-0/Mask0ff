@@ -134,7 +134,7 @@ upstream says so.
 That means "we upgraded to 4.7.4" is not an answer to "are we affected". Someone
 has to look at the call sites. This is exactly the kind of thing a version
 number check will report as fixed while the application is still exposed, and it
-is worth Ahmed carrying as a general suspicion: a patch that fixes a default
+is worth carrying as a general suspicion: a patch that fixes a default
 does not fix an override.
 
 ## How you would reproduce it

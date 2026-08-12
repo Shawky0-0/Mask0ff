@@ -91,10 +91,9 @@ Most people do exactly the reverse, and stop after step 4.
 Not a vulnerability class. It is a research method that feeds every class, and it
 belongs alongside the corpus rather than inside one directory.
 
-Stack independent, but it needs a public repository and a linked fix. It reaches
-Ahmed's stack well: Laravel, Symfony, CodeIgniter, PHP itself, nginx, MariaDB and
-essentially the whole npm supply chain are public. It does not reach GoHighLevel
-or the WhatsApp integration, which are closed, and that is worth noting as a
+Stack independent, but it needs a public repository and a linked fix. It works well for
+public ecosystems such as Laravel, Symfony, CodeIgniter, PHP, nginx, MariaDB, and npm. It does
+not reach closed-source services or integrations, and that is worth noting as a
 structural limit on this whole sweep rather than a gap in one run.
 
 ## A safe way to test for it

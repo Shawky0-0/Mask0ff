@@ -81,19 +81,17 @@ payment provider return URLs, SMS and email status callbacks, CI build notificat
 server to server postbacks of any kind. Also to signed messages on a queue, where the consumer
 may or may not verify the signature the producer attached.
 
-## Whether it reaches Ahmed's surface, and how
+## Transferability to web and API targets
 
-**Directly, and this is the row the folder had no coverage of at all.** The company stack names
-two consumers of inbound callbacks:
+This method applies directly to any inbound callback consumer:
 
-* **GoHighLevel CRM.** Contact and pipeline updates arriving from the CRM. A forged event writes
-  false data into whatever the fleet drives from it.
-* **The WhatsApp Business API.** Message status and inbound message callbacks. A forged delivery
-  or inbound message is a direct route into any automation behind it, and WhatsApp callbacks
-  frequently drive automation.
+* **CRM callbacks.** Contact and pipeline updates arriving from a CRM can write false data into
+  downstream workflows when origin verification is absent.
+* **Messaging-platform callbacks.** Forged delivery or inbound-message events can reach any
+  automation behind the consumer.
 
-Both are recorded in the repo as **stated, not verified**, so the first question is not even
-about signatures: it is whether the fleet consumes these callbacks at all, and at what URL.
+The first target-specific question is whether the application consumes these callbacks at all,
+and at what URL. Never infer deployment from a generic technology inventory.
 
 The question to ask of each, and it is deliberately not "is a secret configured":
 
@@ -111,7 +109,7 @@ to question 2, and it is worth asking separately: a signature proves origin, not
 Reading the code is the primary method, and it is free of any authorisation problem at all
 because it is reading, not probing.
 
-For a lab test, on Ahmed's own disposable install:
+For a lab test, on a researcher-controlled disposable install:
 
 1. Configure the webhook consumer with a signing secret.
 2. POST a payload carrying a canary value in a field the application will log, with **no**
@@ -121,7 +119,7 @@ For a lab test, on Ahmed's own disposable install:
 
 Step 3 is not optional and it is the step people skip. See below.
 
-Never against a live endpoint, never against a company system, and never send anything to the
+Never against a live endpoint, never against a production system, and never send anything to the
 real provider.
 
 ## The control that catches a false positive
@@ -146,7 +144,7 @@ test rig is wrong rather than the target being vulnerable.
 * The wider version of the greppable signal: any parameter accepted and unused. A `$permissions`
   argument that is never consulted, a `$scope` that is never compared, a `$tenantId` that is
   passed down three layers and dropped.
-* The reverse direction, outbound: the fleet calling a provider and trusting the response body
+* The reverse direction, outbound: an application calling a provider and trusting the response body
   without checking status, shape or bounds. That is the other half of `API10` and this folder
   still has no entry for it.
 
