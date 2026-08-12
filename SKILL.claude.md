@@ -43,8 +43,21 @@ targets from this file.
 ## Where this skill reads and writes
 
 **Home is the work brain at `D:\Ahmed-yzh\work-brain`.** Every repo relative path below
-resolves there. The skill's own assets (`references/`, `scripts/`, `assets/`, `evals/`)
-resolve inside this repository.
+resolves there.
+
+**The engine root is `D:\Ahmed-yzh\work-brain\security\maskoff\repo\`.** Every path below
+of the form `references/...`, `scripts/...`, `assets/...` or `evals/...` resolves against
+**that** directory, not against the work brain root and not against wherever this file is
+installed. The engine folder is gitignored in the work brain because the corpus is large,
+so it exists on disk but is not versioned there.
+
+> **This file is the source of truth and it lives at
+> `security/maskoff/repo/SKILL.claude.md`.** The installed copy at
+> `security/.claude/skills/mask0ff-wp/SKILL.md` is a byte identical copy. **Edit the
+> source, then re copy**, or the two will drift:
+> ```powershell
+> Copy-Item security\maskoff\repo\SKILL.claude.md security\.claude\skills\mask0ff-wp\SKILL.md -Force
+> ```
 
 - **Reads**, for context and teaching: `study/security-study-order.md`,
   `study/wordpress/wordpress-security-anatomy.md`,
@@ -184,21 +197,76 @@ are in `references/verification-gates.md`.
 2. Build `A1` target, role, object, state, and trust boundary model. For WordPress,
    name the role (anonymous, subscriber, author, admin), the object (a post, a user,
    an option, an uploaded file), and the boundary being tested.
-3. Write one falsifiable `H1` hypothesis from an observed signal.
-4. Preserve a `B1` baseline before modifying one variable.
-5. Demonstrate `P1` using owned accounts, synthetic data, or the local lab.
-6. Run `C1` negative, differential, and intended behavior controls.
-7. Repeat under `R1` in a clean state; record both runs.
-8. Bound `I1` impact to what the evidence proves.
-9. Establish `S1` root cause, `V1` affected version range, and `F1` fix control.
-10. Complete `D1` known vulnerability check (below).
-11. Pass `Q1` evidence and reporting quality.
+3. Pass `T1` adversary and trust model: name the real attacker and the real victim, the
+   exact inputs the attacker controls, the prerequisites they do **not** control, the
+   trust principals, and the security contract being defended. **Behaviour that is
+   intentional, documented, or explicitly consented to cannot pass `T1`.** On WordPress
+   this is the gate that separates a real access control bug from "an editor can edit
+   posts, which is what an editor is for".
+4. Write one falsifiable `H1` hypothesis from an observed signal.
+5. Preserve a `B1` baseline before modifying one variable.
+6. Demonstrate `P1` using owned accounts, synthetic data, or the local lab, **with an
+   observable effect**. A status code, an error string, or a reflected value is a lead,
+   not proof. Read the per class proof requirements in
+   [authorization-and-safety.md](references/authorization-and-safety.md) under safe
+   impact proof.
+7. Run `C1` negative, differential, and intended behavior controls.
+8. Repeat under `R1` in a clean state; record both runs.
+9. Pass `E1` authority delta: record what the actor could do before and after, prove the
+   boundary crossing, and **rule out authority they already held by an intended path**.
+   For WordPress, check the capability the role already has before calling it escalation.
+10. Pass `X1` independent adversarial validation: hand a hash bound blind packet to a
+    validator who is **not** the discoverer. See the one person adaptation below.
+11. Bound `I1` impact to directly demonstrated effects. Move everything hedged
+    ("potential", "could", "may") into bounded inferences.
+12. Establish `S1` root cause, `V1` affected version range and freshness, and `F1` fix
+    control. See the `V1` internal mode note below, which differs from the base skill.
+13. Pass `J1` adversarial vendor triage: a reviewer separate from discovery attacks the
+    candidate with every standard rejection reason and must defeat each applicable one
+    with evidence. See the internal reframing below.
+14. Complete `D1` known vulnerability check (below).
+15. Pass `Q1` evidence and reporting quality.
 
-Never call a finding `verified` unless `A0`, `A1`, `H1`, `B1`, `P1`, `C1`, `R1`, and
-`I1` pass, and each applicable `S1`, `V1`, and `F1` is `pass` or `not_applicable` with
-a reason. Never call it `reportable` unless the verified prerequisites plus `D1` and
-`Q1` pass. The verifier is authoritative; use `not_applicable` only with a written
-reason.
+Never call a finding `verified` unless `A0`, `T1`, `B1`, `P1`, `C1`, `R1`, `X1`, `I1`,
+and `E1` pass. Never call it `reportable` unless the verified prerequisites plus `J1`,
+`D1`, and `Q1` pass, with `S1`, `V1`, and `F1` `pass` or `not_applicable` with a reason.
+The verifier is authoritative; use `not_applicable` only with a written reason.
+
+**A technical effect that fails `T1`, `E1`, `V1` freshness, `I1`, or `J1` is useful
+negative evidence and must not be written up as a vulnerability.** Preserve it as a
+refuted hypothesis; it still counts as coverage.
+
+**`X1` for one person, which is Ahmed's normal case.** He is the discoverer on
+everything he finds, and the base skill assumes a second researcher exists. His
+independent validator is **a separate agent, in fresh context, on a different model,
+given only the blind packet** and none of the discovery reasoning. When that is not
+available, `X1` stays pending and the finding is capped at `substantiated`. **A
+`substantiated` finding can still go to the technical manager**, as long as the report
+says plainly that nobody independent reproduced it. Do not quietly call it verified.
+Read [independent-validation.md](references/independent-validation.md).
+
+**`V1` internal mode, which overrides the base skill.** Upstream requires the tested
+version to be current or supported and still vulnerable, and treats a stale or already
+fixed version as a non finding. **That is correct for a bug bounty and backwards here.**
+The fleet's binding problem is that nobody knows which versions are deployed and some
+are probably old, so "this site runs a version that upstream fixed months ago" is not a
+rejected finding, **it is the finding**, and it is the whole argument for the version
+inventory. On a YZH target, record the freshness fields honestly and, when the tested
+version is out of date, set `V1` to `pass` with the remediation stated as **upgrade**,
+and say in the report which supported release fixes it. Reserve the upstream freshness
+rejection for outside research where a stale build earns nothing.
+
+**`J1` reframed for an internal reader.** The upstream twelve rejection arguments are
+written for a vendor triager who has an incentive to close the report. Ten of them
+transfer unchanged and are worth running honestly: working as designed, explicit
+consent, same trust principal, no attacker control, equivalent authority, stale version
+(subject to the `V1` note above), functional correctness only, unrealistic
+preconditions, no security contract, and potential impact only. Two mean something
+different with no bounty program: **duplicate** becomes "is this already in
+`company/known-issues` or an open ticket", and **accepted risk** becomes "has the
+technical manager already decided to live with this", which is a real answer and should
+be recorded rather than argued with. Read
+[triage-failure-modes.md](references/triage-failure-modes.md) before running `J1`.
 
 **`Q1` requires a written report, and the verifier does not check that.** `finding`
 validates the record, not the prose: it never opens `report.md`, so `Q1` can read
@@ -267,6 +335,57 @@ when a plugin, theme, core release, or configuration range is material. Run
 `report` for internal reports too; “submission” means a defensible handoff, not only
 a bounty-platform submission.
 
+## Tooling added in 2.0, and which of it matters here
+
+**`owners`, the object ownership matrix. Use this first and use it often.** It validates,
+for an access control finding, **which request created the object, which account owns it,
+which accounts should be able to reach it, and what the tested account actually got**.
+That is the difference between "I changed an ID in the URL" and "I proved broken access
+control", and it is the exact method the multi tenant isolation question at the top of
+`company/known-issues` needs. On WordPress this is how you test whether one
+organisation's teacher can reach another organisation's student, booking, order, media
+file, or export.
+
+```powershell
+.\scripts\mask0ff.cmd owner-matrix init <owner-matrix.json>
+.\scripts\mask0ff.cmd owner-matrix verify <owner-matrix.json> --finding $bundle\finding-record.json
+```
+
+**`challenge`, which produces the `X1` artifact**, and `bundle challenge`, which binds it
+into the record. This is the independent validation step, run by the separate validator:
+
+```powershell
+.\scripts\mask0ff.cmd challenge <independent-validation.json> --finding $bundle\finding-record.json
+.\scripts\mask0ff.cmd bundle challenge $bundle <independent-validation.json>
+```
+
+**`triage-review`, which produces the `J1` artifact**, and `bundle triage`, which binds
+it into the record:
+
+```powershell
+.\scripts\mask0ff.cmd triage-review <independent-validation.json> --finding $bundle\finding-record.json
+.\scripts\mask0ff.cmd bundle triage $bundle <triage-review.json>
+```
+
+**`triage`, for judging a report rather than making one.** Use it when Ahmed is handed
+someone else's finding to evaluate, which is a normal QA task. Read
+[triage-workflow.md](references/triage-workflow.md). **Note its gates are named `T0` to
+`T7` and they are a different set from the finding gates**; triage `T1` means scope,
+while finding `T1` means adversary and trust model. See `security/codes-legend.md`.
+
+**`weird` and `graph`, both lower priority here.** `weird` scores how promising a
+candidate is so you can choose what to chase across a large unfamiliar surface, which is
+a bounty problem more than a fleet problem, since `company/known-issues` already ranks
+Ahmed's targets. `graph` needs source code to build an architecture model, so it is
+blocked until repo access exists. **Neither score is ever severity or proof.** Keep both
+available; do not lead with them.
+
+**`outcome`, the outcome ledger, worth adapting rather than dropping.** Upstream records
+what a bug bounty platform decided about each submission and learns the acceptance rate
+per class. Ahmed's equivalent verdicts come from the technical manager: accepted, fixed,
+deferred, disputed, will not fix. Recording them turns "what does he actually act on"
+into data instead of a feeling, and it feeds `J1`'s accepted risk question directly.
+
 ## WordPress technique routing
 
 Search the library before opening long files: `.\scripts\mask0ff.cmd techniques
@@ -282,7 +401,16 @@ the technique directories that are in scope for this variant:
 | SQL injection via `$wpdb`, unsafe unserialization of attacker-controlled `wp_options` data with a usable gadget chain, file upload that lands executable PHP in `uploads/`, path traversal in `download.php?file=` style handlers, SSRF in fetch features | `techniques/06-server-side-injection-file-data/` |
 | Nonce and workflow abuse, race conditions, order or state logic in plugins (for example WooCommerce) | `techniques/08-business-logic-race-operations/` |
 | Vulnerable, outdated, or abandoned plugins and themes; a plugin that changed hands | `techniques/09-components-supply-chain/` |
-| A plugin that adds an AI or LLM feature (only then) | `techniques/10-llm-web-security/` |
+| **Any AI or LLM surface in scope, not only a plugin**: a chat agent grounded on a site scrape, a RAG pipeline, an assistant with CRM or booking access, an AI feature inside a plugin or theme, or a model reachable through a webhook | `techniques/10-llm-web-security/` |
+
+**The AI row was widened deliberately, 2026-08-11.** It previously read "a plugin that
+adds an AI or LLM feature (only then)", which made the corpus's 61KB of LLM security
+material unreachable for the fleet's most relevant AI target, because YZH's chat agent is
+a CRM grounded assistant rather than a WordPress plugin. **Exclude the jailbreak and
+model extraction sections** (DAN, developer mode, many shot, adversarial suffixes,
+membership inference) from routing: those attack a model vendor's safety training rather
+than YZH's application, they are not Ahmed's job, and they are the highest policy risk
+material in the corpus. Leave the file itself intact.
 
 The broad external-asset portion of `01-recon-cloud-infrastructure/` is not the current
 WordPress default. Keep the directory available for a later project or an explicitly
@@ -356,16 +484,43 @@ never to the personal vault. When a technique has been learned to the point he c
 the class by hand and explain it cold, mark the class as learned. The recall gate in
 `study/security-study-order.md` is what closes a class, not a feeling of being done.
 
-## Persist without looping
+## Persist without looping, and stop on the budget rather than on the clock
 
 Continue productive work while `continuation.continue_work` is true and the current
 work mode still permits it. If `continuation.continue_technical_testing` is false,
 switch to passive analysis, local reproduction, or reporting; do not silently continue
-active testing. If one hypothesis fails, preserve it as refuted and pivot from the next
-observed signal instead of stopping the whole investigation. If the same action fails
-twice, change method. If the same blocker persists for three cycles, return the exact
-blocker and required input. Never persist active testing past invalid authorization,
-unsafe proof, third-party harm, the minimum-safe proof point, or a reportable state.
+active testing.
+
+**Per thread persistence, taken from the base skill unchanged, because it is right.**
+If one hypothesis fails, preserve it as refuted and move to the next strongest signal
+rather than stopping the whole investigation. If the same action fails five times with
+the same method, change technique (encoding, transport, role, parameter, channel) and
+keep the thread open. **Abandon a thread only when evidence refutes the hypothesis,
+never because attempts failed.** If the same blocker persists for five cycles on one
+thread, report the exact blocker and required input, then continue the other threads.
+
+**Session budget, which overrides the base skill's engagement rule.** Upstream says do
+not stop while any in scope surface is untested, and that time is not a stopping
+criterion. **For full coverage that is correct, and coverage is still the goal here:
+this is pen testing on a fixed estate, not bounty hunting where you pick the promising
+target and drop the rest. Every property matters and an untested surface is a real
+gap.** What differs is that Ahmed has one calendar, a QA job that is most of his week,
+and no subscription absorbing unbounded compute.
+
+So the run is **resumable, not unbounded**:
+
+- Ahmed sets a session budget before the run starts. When it is spent, **stop and
+  report**, do not push on silently.
+- **Never finish a session with an unrecorded surface.** Every operation in scope is
+  marked `tested`, `blocked`, `excluded`, or `not_applicable` in the coverage ledger
+  (`assets/evidence-bundle/coverage-plan.json`). Nothing is silently skipped.
+- An interrupted run must leave **a map, not a gap**: the next session resumes from the
+  ledger instead of starting over.
+- Coverage is judged across sessions, never within one. A surface left `not tested` at
+  the end of a session is an open item, not a pass.
+
+Never persist active testing past invalid authorization, unsafe proof, third party harm,
+the demonstrated impact stopping point, or a reportable state.
 
 ## Orchestrate specialized agents only when asked
 
