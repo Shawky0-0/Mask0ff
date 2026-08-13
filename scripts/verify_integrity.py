@@ -6,7 +6,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from audit_corpus import GitBlobReader, TEXT_EXTENSIONS
+from audit_corpus import GitBlobReader, is_text_path
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +14,7 @@ MANIFEST = ROOT / "MANIFEST.sha256"
 
 
 def sha256(path: Path, reader: GitBlobReader) -> str:
-    raw = reader.read(path)[0] if path.suffix.lower() in TEXT_EXTENSIONS else path.read_bytes()
+    raw = reader.read(path)[0] if is_text_path(path) else path.read_bytes()
     return hashlib.sha256(raw).hexdigest()
 
 

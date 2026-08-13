@@ -6,7 +6,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from audit_corpus import GitBlobReader, TEXT_EXTENSIONS
+from audit_corpus import GitBlobReader, is_text_path
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +31,7 @@ def tracked_files() -> list[Path]:
 
 
 def file_bytes(path: Path, reader: GitBlobReader) -> bytes:
-    if path.suffix.lower() in TEXT_EXTENSIONS:
+    if is_text_path(path):
         return reader.read(path)[0]
     return path.read_bytes()
 

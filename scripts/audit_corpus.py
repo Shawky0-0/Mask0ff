@@ -30,15 +30,20 @@ TEXT_EXTENSIONS = {
     ".yaml",
     ".yml",
 }
+TEXT_FILENAMES = {".gitattributes", ".gitignore"}
 CITATION = re.compile("\ue200cite\ue202.*?\ue201", re.DOTALL)
 CITATION_MARKERS = {"\ue200", "\ue201", "\ue202"}
 MARKDOWN_LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 ALLOWED_CONTROLS = {"\t", "\n", "\r"}
 
 
+def is_text_path(path: Path) -> bool:
+    return path.suffix.lower() in TEXT_EXTENSIONS or path.name in TEXT_FILENAMES
+
+
 def text_files(root: Path):
     for path in sorted(root.rglob("*")):
-        if path.is_file() and ".git" not in path.parts and path.suffix.lower() in TEXT_EXTENSIONS:
+        if path.is_file() and ".git" not in path.parts and is_text_path(path):
             yield path
 
 
