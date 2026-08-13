@@ -1,0 +1,845 @@
+{
+  "schema_version": 1,
+  "purpose": "Transferable techniques extracted by the daily vulnerability intelligence sweeps. Same shape as references/techniques/current-techniques.json so a technique query can rank both catalogs together. Every row is a cited hypothesis, never a reproduced finding.",
+  "sources": [
+    {
+      "id": "sweep-wordpress",
+      "name": "WordPress intelligence sweep"
+    },
+    {
+      "id": "sweep-web",
+      "name": "Web application intelligence sweep"
+    },
+    {
+      "id": "sweep-api",
+      "name": "API intelligence sweep"
+    },
+    {
+      "id": "sweep-web3",
+      "name": "Web3 intelligence sweep"
+    }
+  ],
+  "techniques": [
+    {
+      "id": "MTH-API-001",
+      "title": "the object graph, and why changing an ID is not a finding",
+      "source": "sweep-api",
+      "rank": 1,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "signals": [
+        "access-control",
+        "maskoff"
+      ],
+      "one_line": "Two questions look like one question: 1. May this account write to scope X? (usually checked) 2.",
+      "discovery_signal": "You are looking for a **gap between two identifiers in the same request**. Almost every API handler that goes wrong this way takes both: * a **scope**: a volume, a workspace, a tenant, a course, an o…",
+      "record": "findings/*/MTH-API-001.md"
+    },
+    {
+      "id": "MTH-API-002",
+      "title": "break one item in a batch and watch the others answer for each other",
+      "source": "sweep-api",
+      "rank": 2,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "signals": [
+        "access-control",
+        "batch"
+      ],
+      "one_line": "Two passes, one list, joined by index: 1. Validation walks the list and records, for each item, what it is and who may do it.",
+      "discovery_signal": "The signal is **a batch endpoint that reports per item results**. That is it, and it is usually visible from the documentation alone.",
+      "record": "findings/*/MTH-API-002.md"
+    },
+    {
+      "id": "MTH-API-003",
+      "title": "make the proxy rewrite your path into a header, and the stream stops being yours",
+      "source": "sweep-api",
+      "rank": 3,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "infra",
+        "web"
+      ],
+      "signals": [
+        "desync",
+        "gateway",
+        "proxy"
+      ],
+      "one_line": "Nginx URL decodes the request path as part of normalisation, and `$uri` holds that decoded value.",
+      "discovery_signal": "The signal is **an error status you did not ask for, in a family that has nothing to do with your request**: 505 Version Not Supported, 501 Not Implemented, 417 Expectation Failed.",
+      "record": "findings/*/MTH-API-003.md"
+    },
+    {
+      "id": "MTH-API-004",
+      "title": "send the one time request twice at once",
+      "source": "sweep-api",
+      "rank": 4,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "signals": [
+        "business-flow",
+        "idempotency",
+        "race"
+      ],
+      "one_line": "Find a request the user interface only ever sends once, send two at the same instant, and see whether the effect lands twice.",
+      "discovery_signal": "This is the field most writeups bury, and here it is unusually specific. **You are not looking for a suspicious response.",
+      "record": "findings/*/MTH-API-004.md"
+    },
+    {
+      "id": "MTH-API-005",
+      "title": "read the verifier, not the documentation",
+      "source": "sweep-api",
+      "rank": 5,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "infra",
+        "web3"
+      ],
+      "signals": [
+        "api10",
+        "hmac",
+        "signature",
+        "webhook"
+      ],
+      "one_line": "For every inbound webhook, find the function that verifies it and check that the secret it is handed is actually read.",
+      "discovery_signal": "The narrowest and most mechanical signal in this folder, which is what makes it worth having.",
+      "record": "findings/*/MTH-API-005.md"
+    },
+    {
+      "id": "MTH-API-006",
+      "title": "the endpoints that promise to do nothing are the ones with no check",
+      "source": "sweep-api",
+      "rank": 6,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "signals": [
+        "ai",
+        "preview",
+        "validate"
+      ],
+      "one_line": "Enumerate every route whose name promises it has no effect, then check whether anybody guarded it, because the name is usually why nobody did.",
+      "discovery_signal": "**A route named after a non action.** `validate`, `check`, `verify`, `lint`, `parse`, `preview`, `render`, `test`, `dry-run`, `simulate`, `estimate`, `probe`, `health`.",
+      "record": "findings/*/MTH-API-006.md"
+    },
+    {
+      "id": "MTH-API-007",
+      "title": "attack the rate limiter's key, never its number",
+      "source": "sweep-api",
+      "rank": 7,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api"
+      ],
+      "signals": [
+        "keying",
+        "rate-limit"
+      ],
+      "one_line": "A rate limit is a counter with a name on it. Find out what the name is made of, and if the caller controls any part of it, the caller gets a fresh counter whenever they want one.",
+      "discovery_signal": "**Nobody writes down the rate limit key, so nobody checks it.** Documentation says \"5 attempts per minute\".",
+      "record": "findings/*/MTH-API-007.md"
+    },
+    {
+      "id": "MTH-API-008",
+      "title": "the guard exists, so count its call sites instead of looking for it",
+      "source": "sweep-api",
+      "rank": 8,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "infra",
+        "source"
+      ],
+      "signals": [
+        "guard-placement",
+        "ssrf"
+      ],
+      "one_line": "Stop asking whether a product validates. Assume it does, find the validator, then count every path that reaches the dangerous operation and subtract the ones that call it.",
+      "discovery_signal": "**A file named like a guard is an invitation, not a reassurance.** `ssrf_helper.php`, `sanitize.js`, `checkPermission()`, `validateUrl()`.",
+      "record": "findings/*/MTH-API-008.md"
+    },
+    {
+      "id": "MTH-API-009",
+      "title": "in GraphQL the client writes the workload, so count what the server counts",
+      "source": "sweep-api",
+      "rank": 9,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "infra"
+      ],
+      "signals": [
+        "alias-amplification",
+        "graphql"
+      ],
+      "one_line": "One GraphQL request is not one unit of anything, so find the unit the server's defences count and multiply everything else.",
+      "discovery_signal": "**A single URL that accepts arbitrary work.** With REST, a route is a rough proxy for an operation, so per route limits and per request limits and path based edge rules all approximately work.",
+      "record": "findings/*/MTH-API-009.md"
+    },
+    {
+      "id": "MTH-W3-001",
+      "title": "Split the two questions on every signed input",
+      "source": "sweep-web3",
+      "rank": 10,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "web3"
+      ],
+      "signals": [
+        "oracle",
+        "seam",
+        "web3",
+        "webhook"
+      ],
+      "one_line": "On every input that arrives with a signature, separate \"is the sender authorised\" from \"is this value possible\", and find out which of the two the code actually asks.",
+      "discovery_signal": "A verification function that ends at the signature or the role check. Read the ingestion path top to bottom, and if the last thing it does before acting on the value is confirm who sent it, stop ther…",
+      "record": "findings/*/MTH-W3-001.md"
+    },
+    {
+      "id": "MTH-W3-002",
+      "title": "Read the dependency's publish pipeline, not only its code",
+      "source": "sweep-web3",
+      "rank": 11,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "source",
+        "web3"
+      ],
+      "signals": [
+        "build-pipeline",
+        "npm",
+        "supply-chain",
+        "web3"
+      ],
+      "one_line": "For any dependency, stop asking whether the code is good and ask what it would take for a stranger to publish code into your build.",
+      "discovery_signal": "Public registry and repository metadata answers all of it, and none of it requires installing anything: * A version published minutes after a commit, which means no human stood between them.",
+      "record": "findings/*/MTH-W3-002.md"
+    },
+    {
+      "id": "MTH-W3-003",
+      "title": "Ask what the user sees, what the user authorises, and who can change the code in between",
+      "source": "sweep-web3",
+      "rank": 12,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "web3"
+      ],
+      "signals": [
+        "consent",
+        "dns",
+        "frontend",
+        "signing",
+        "web3"
+      ],
+      "one_line": "Treat the served front end as a security boundary: check who can replace it, whether anyone would notice, and whether the confirmation screen states what is actually being authorised.",
+      "discovery_signal": "Three questions, all answerable from outside with public data: * **Who can move the domain.** No registry lock, no DNSSEC, a registrar account without hardware backed multi factor.",
+      "record": "findings/*/MTH-W3-003.md"
+    },
+    {
+      "id": "MTH-W3-004",
+      "title": "follow every signature back to the moment of consent",
+      "source": "sweep-web3",
+      "rank": 13,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web3"
+      ],
+      "signals": [
+        "authorisation",
+        "signing",
+        "web3"
+      ],
+      "one_line": "For every signature, token or approval a system accepts, ask three questions: when was it created, what could the person creating it actually see, and what stops it being spent somewhere else later.",
+      "discovery_signal": "Words in the design that separate approval from execution. **Durable. Offline. Queued. Pending approval.",
+      "record": "findings/*/MTH-W3-004.md"
+    },
+    {
+      "id": "MTH-W3-005",
+      "title": "trace every claim to the party that chose it",
+      "source": "sweep-web3",
+      "rank": 14,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web",
+        "web3"
+      ],
+      "signals": [
+        "authentication",
+        "seam",
+        "web3"
+      ],
+      "one_line": "Take every field the server reads out of a signed or encoded blob, and for each one write down who chose the value it is compared against: the server, or the sender.",
+      "discovery_signal": "Verification code shaped like this: ``` if (verify(message, signature)) { user = parse(message).address; createSession(user); } ``` **The signal is the gap between line 1 and line 2.** If nothing bet…",
+      "record": "findings/*/MTH-W3-005.md"
+    },
+    {
+      "id": "MTH-W3-006",
+      "title": "read your own incident runbook as the attacker's script",
+      "source": "sweep-web3",
+      "rank": 15,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web3"
+      ],
+      "signals": [
+        "incident-response",
+        "phishing",
+        "web3"
+      ],
+      "one_line": "Take the message the organisation would send during an incident, and treat it as a phishing template the attacker gets to fill in, faster and louder than you can.",
+      "discovery_signal": "Any user facing instruction that combines **urgency**, **a destination**, and **an unfamiliar action**.",
+      "record": "findings/*/MTH-W3-006.md"
+    },
+    {
+      "id": "MTH-W3-007",
+      "title": "ask what the lookup returns when it finds nothing",
+      "source": "sweep-web3",
+      "rank": 16,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web3"
+      ],
+      "signals": [
+        "input-validation",
+        "seam",
+        "web3"
+      ],
+      "one_line": "For every read that is keyed by something a caller controls, or that happens before the data is written, ask what comes back on a miss, and then ask whether that value is distinguishable from a real answer.",
+      "discovery_signal": "Two shapes, and both are visible by reading code rather than by running anything. * A value is fetched by an identifier that arrived in the request, and there is no bounds or existence check on that…",
+      "record": "findings/*/MTH-W3-007.md"
+    },
+    {
+      "id": "MTH-W3-008",
+      "title": "normalise both sides, or the gate never matches the door",
+      "source": "sweep-web3",
+      "rank": 17,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "source",
+        "web3"
+      ],
+      "signals": [
+        "authorisation",
+        "normalisation",
+        "seam",
+        "web3"
+      ],
+      "one_line": "Wherever a protection is selected by matching a string, find the code that normalises the request and the code that normalises the rule, and check they are the same function.",
+      "discovery_signal": "A configuration file where a human wrote the path, the role, the host or the file extension by hand, and a matcher that transforms the incoming value before comparing.",
+      "record": "findings/*/MTH-W3-008.md"
+    },
+    {
+      "id": "MTH-W3-009",
+      "title": "test with two users, because a cache bug is invisible to one",
+      "source": "sweep-web3",
+      "rank": 18,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "web",
+        "web3"
+      ],
+      "signals": [
+        "caching",
+        "multi-user-testing",
+        "seam",
+        "web3"
+      ],
+      "one_line": "Write out the cache key in full, list every input the cached computation actually read, and if the second list is longer than the first, you have found a cross user disclosure.",
+      "discovery_signal": "Any memoisation, caching or reuse in front of code that reads ambient state: the current request, the session, the logged in user, a token, a tenant.",
+      "record": "findings/*/MTH-W3-009.md"
+    },
+    {
+      "id": "MTH-WEB-001",
+      "title": "shared parser confusion, and what an AI research system actually found",
+      "source": "sweep-web",
+      "rank": 19,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "infra"
+      ],
+      "signals": [
+        "ai",
+        "desync",
+        "protocol",
+        "web"
+      ],
+      "one_line": "HTTP request smuggling and desync all come from **two servers disagreeing about where one message ends and the next begins**.",
+      "discovery_signal": "Look for **one piece of code serving two roles**. In HTTP that is a parser used for both request and response handling.",
+      "record": "findings/*/MTH-WEB-001.md"
+    },
+    {
+      "id": "MTH-WEB-002",
+      "title": "chase the gap between what people say is common and what you have actually seen",
+      "source": "sweep-web",
+      "rank": 20,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "web"
+      ],
+      "signals": [
+        "crlf",
+        "desync",
+        "nginx",
+        "protocol",
+        "web"
+      ],
+      "one_line": "Desync attacks all reduce to one thing: **the front end and the back end disagree about where one request ends and the next begins.** The classic disagreement comes from `Content-Length` against `Transfer-Encoding`.",
+      "discovery_signal": "Most research starts from a target. This one started from a contradiction. A post claimed that CRLF header injection was \"not that uncommon\", and the researchers had never once run into it in practic…",
+      "record": "findings/*/MTH-WEB-002.md"
+    },
+    {
+      "id": "MTH-WEB-003",
+      "title": "test what the browser does, not what the sanitiser believes",
+      "source": "sweep-web",
+      "rank": 21,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "web"
+      ],
+      "signals": [
+        "client-side",
+        "css",
+        "email",
+        "exfiltration",
+        "web"
+      ],
+      "one_line": "CSS can be made to do three things it was never meant to do. **It can read text.** Attribute selectors match on the beginning of a value, or on a value containing a substring: `[value^=\"a\"]`, `[value*=\"ab\"]`.",
+      "discovery_signal": "Heyes went looking for the difference between **what a sanitiser believes is safe and what a browser actually does with the same bytes.** He then walked that question through webmail clients one at a…",
+      "record": "findings/*/MTH-WEB-003.md"
+    },
+    {
+      "id": "MTH-WEB-004",
+      "title": "benchmark first: finding race conditions by looking for sub states",
+      "source": "sweep-web",
+      "rank": 22,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web"
+      ],
+      "signals": [
+        "business-logic",
+        "http2",
+        "race-condition"
+      ],
+      "one_line": "Treat every request as if it passes through several hidden intermediate states, then send a batch of requests engineered to arrive during one of them, and judge the result against a sequential benchmark rather than against your expectation…",
+      "discovery_signal": "This is the field the brief calls most valuable and most buried, and here it is unusually clear.",
+      "record": "findings/*/MTH-WEB-004.md"
+    },
+    {
+      "id": "MTH-WEB-005",
+      "title": "read the route file for the middleware that was taken off",
+      "source": "sweep-web",
+      "rank": 23,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "source"
+      ],
+      "signals": [
+        "authentication",
+        "laravel",
+        "middleware",
+        "source-review"
+      ],
+      "one_line": "Open the framework's route definition file, find every route that has protection explicitly removed or conditionally skipped, and ask what condition the attacker controls.",
+      "discovery_signal": "The researcher did not scan Krayin. They read `packages/Webkul/Installer/src/Routes/web.php` and noticed three POST endpoints declared `withoutMiddleware('web')`.",
+      "record": "findings/*/MTH-WEB-005.md"
+    },
+    {
+      "id": "MTH-WEB-006",
+      "title": "reconstruct the attack from the patch, and read the tests first",
+      "source": "sweep-web",
+      "rank": 24,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source"
+      ],
+      "signals": [
+        "laravel",
+        "patch-diff",
+        "source-review"
+      ],
+      "one_line": "Open the fix commit rather than the advisory, read the changed tests before the changed code, and let the test names tell you the attack the vendor's prose would not.",
+      "discovery_signal": "The signal here is a property of the advisory, not of a target: **a security advisory whose description is vague about mechanism.** GHSA-crmm-hgp2-wgrp says a signed URL \"can be interpreted different…",
+      "record": "findings/*/MTH-WEB-006.md"
+    },
+    {
+      "id": "MTH-WEB-007",
+      "title": "did the patch fix the bug or fix the class",
+      "source": "sweep-web",
+      "rank": 25,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source"
+      ],
+      "signals": [
+        "fix-diff",
+        "patch-review",
+        "source-review"
+      ],
+      "one_line": "Read the fix diff and decide which of two things it did: added the reported case to a list, or stated a rule that covers cases nobody has reported yet.",
+      "discovery_signal": "Two independent cases produced this card on the same run, which is why it is worth a card rather than a note.",
+      "record": "findings/*/MTH-WEB-007.md"
+    },
+    {
+      "id": "MTH-WEB-008",
+      "title": "the hash of nothing, or what a security function returns when it gives up",
+      "source": "sweep-web",
+      "rank": 26,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web3"
+      ],
+      "signals": [
+        "authentication",
+        "fail-open",
+        "saml",
+        "signatures",
+        "xml"
+      ],
+      "one_line": "Find the error path inside a security function where an exception is swallowed and an empty value is used instead, then precompute the check's answer for that empty value, because it is a constant and it is the same on every install on ear…",
+      "discovery_signal": "Zakhar Fedotkin was not looking for a new bug. He and Gareth Heyes had already broken `ruby-saml` in 2024 with XML signature wrapping through DTDs.",
+      "record": "findings/*/MTH-WEB-008.md"
+    },
+    {
+      "id": "MTH-WEB-009",
+      "title": "the filter reads a string and the socket reads an address",
+      "source": "sweep-web",
+      "rank": 27,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "source"
+      ],
+      "signals": [
+        "cloud-metadata",
+        "normalisation",
+        "recon",
+        "ssrf"
+      ],
+      "one_line": "Find a feature that fetches a URL you supply, confirm it has a filter by getting it to refuse something, then write the same destination in a notation the filter classifies differently from the network stack.",
+      "discovery_signal": "The signal is the **refusal**, not the success. A product that silently fails when you point it at `169.254.169.254` might have no filter and no route.",
+      "record": "findings/*/MTH-WEB-009.md"
+    },
+    {
+      "id": "MTH-WP-001",
+      "title": "hunt the disagreement between two functions that read the same string",
+      "source": "sweep-wordpress",
+      "rank": 28,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "web"
+      ],
+      "signals": [
+        "parser-differential",
+        "wordpress"
+      ],
+      "one_line": "Do not attack a parser. Find two pieces of code that read the same input and disagree about what it means, then send the input they disagree about.",
+      "discovery_signal": "The signal is **two names for the same job in one call stack**. Not one function behaving oddly, but two functions both described as making a value safe, both applied to the same value, written at di…",
+      "record": "findings/*/MTH-WP-001.md"
+    },
+    {
+      "id": "MTH-WP-002",
+      "title": "clobber the variable the page forgot to define",
+      "source": "sweep-wordpress",
+      "rank": 29,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web"
+      ],
+      "signals": [
+        "dom-clobbering",
+        "wordpress",
+        "xss"
+      ],
+      "one_line": "When you can inject HTML but not script, look for a JavaScript variable the page reads but never sets, then create it by giving an injected element that `id`, so the browser defines it for you.",
+      "discovery_signal": "The signal is **a script loaded on a page it was not written for**. WordPress enqueues `wp-admin/js/user-profile.js` on the login page, because the password reset form lives there.",
+      "record": "findings/*/MTH-WP-002.md"
+    },
+    {
+      "id": "MTH-WP-003",
+      "title": "Authorise the object, serve the path",
+      "source": "sweep-wordpress",
+      "rank": 30,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "web"
+      ],
+      "signals": [
+        "access-control",
+        "desync",
+        "wordpress"
+      ],
+      "one_line": "Three steps and a gap. 1. **Resolve.** User input, a URL or a path or a name, is turned into a domain object: a post ID, a user, an attachment, an order.",
+      "discovery_signal": "You are reading a handler and you notice that the security check and the action take different arguments.",
+      "record": "findings/*/MTH-WP-003.md"
+    },
+    {
+      "id": "MTH-WP-004",
+      "title": "Poison the feed the plugin already trusts",
+      "source": "sweep-wordpress",
+      "rank": 31,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "api",
+        "web",
+        "web3"
+      ],
+      "signals": [
+        "admin-surface",
+        "supply-chain",
+        "wordpress"
+      ],
+      "one_line": "1. A plugin ships a component that fetches JSON from the vendor's own endpoint. Promotional banners, news panels, licence checks, upsell notices, recommended plugins.",
+      "discovery_signal": "The signal is inverted from the usual one, and that is why this card exists. Nobody found this by reading plugin code looking for a bug.",
+      "record": "findings/*/MTH-WP-004.md"
+    },
+    {
+      "id": "MTH-WP-005",
+      "title": "when the app has no surface, attack the library it hands files to",
+      "source": "sweep-wordpress",
+      "rank": 32,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "web"
+      ],
+      "signals": [
+        "imagemagick",
+        "parser",
+        "upload",
+        "wordpress"
+      ],
+      "one_line": "When the target application is too small to have bugs, stop testing the application and go audit the third party library it passes user files to, because that library makes its own decisions about what those files are.",
+      "discovery_signal": "The pwn.ai team were given a client application that was, in their description, minimal: an upload box and little else.",
+      "record": "findings/*/MTH-WP-005.md"
+    },
+    {
+      "id": "MTH-WP-006",
+      "title": "treat `fixed in` as a claim and bisect the tags",
+      "source": "sweep-wordpress",
+      "rank": 33,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "source",
+        "web"
+      ],
+      "signals": [
+        "patch-analysis",
+        "verification",
+        "wordpress"
+      ],
+      "one_line": "Do not read an advisory's fixed version as a fact. Find the sanitising line in the patched release, then walk backwards through the version tags until it disappears, and the release where it first appears is the real fix.",
+      "discovery_signal": "Two things make a `fixed_in` field worth checking rather than believing. **The advisory states a range and not a release.** \"All versions up to and including 27.5\" is a statement about what is broken.",
+      "record": "findings/*/MTH-WP-006.md"
+    },
+    {
+      "id": "MTH-WP-007",
+      "title": "go straight to the AI feature, it is the newest code and the least reviewed",
+      "source": "sweep-wordpress",
+      "rank": 34,
+      "modes": [
+        "black-box",
+        "gray-box",
+        "white-box",
+        "hybrid"
+      ],
+      "surfaces": [
+        "infra",
+        "web"
+      ],
+      "signals": [
+        "ai-features",
+        "nopriv",
+        "ssrf",
+        "wordpress"
+      ],
+      "one_line": "In any product that has recently grown an AI feature, review that feature first, because it is the newest code in the codebase, it was written fastest, and it tends to be wired straight into the front end with no authentication.",
+      "discovery_signal": "The signal is a function name. In the Jobify theme it was `download_image_via_ai`. Read what that name tells you before reading any code.",
+      "record": "findings/*/MTH-WP-007.md"
+    }
+  ]
+}
